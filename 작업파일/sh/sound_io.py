@@ -312,7 +312,7 @@ def cmd_selftest(args):
     """노트북 스피커로 1 kHz를 내고 노트북 마이크로 받아, 녹음이 소리를 앞뒤로 다 담는지 본다. 녹음은 저장하지 않는다."""
     sio = SoundIO(mic=args.mic or "default", speaker=args.out)
     print(f"마이크: {sio._name(sio.mic)} / 출력: {sio._name(sio.speaker)}")
-    print("1 kHz 소리가 약 2초 나온다 ...")
+    print("1 kHz 소리가 약 3초 나온다 ...")
     rec, info = sio.play_and_record("exp1_tone_1k", "A", volume=1.0)
     x = rec[:, 0].astype(np.float32) / 32768
     onset = find_onset(x, PRE_ROLL)
