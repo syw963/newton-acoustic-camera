@@ -1,0 +1,292 @@
+<title>소프트웨어 첫걸음</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap">
+<style>
+/* 레이아웃: 제작 가이드와 같은 제도 용지 계열. 한 단 본문 + 터미널 상자 + 연결도 */
+:root{
+  --paper:#fbfcfc; --paper2:#eef2f3; --ink:#1c2630; --muted:#5d6b76; --line:#c9d2d7;
+  --accent:#1f56a8; --accent-soft:#e3ecf8; --term:#17202a; --term-fg:#dfe7ee; --term-dim:#8fa1b1; --term-ok:#7fd3a0; --term-err:#f19b93;
+  --later:#9aa6ae;
+  --f-body:"IBM Plex Sans KR",system-ui,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#12171c; --paper2:#1a2229; --ink:#e3e9ee; --muted:#9aa8b3; --line:#34414b;
+  --accent:#7fb0f5; --accent-soft:#1c2c42; --term:#0b0f13; --later:#5f6c75; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#12171c; --paper2:#1a2229; --ink:#e3e9ee; --muted:#9aa8b3; --line:#34414b;
+  --accent:#7fb0f5; --accent-soft:#1c2c42; --term:#0b0f13; --later:#5f6c75; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.7;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 64px}
+.wrap{max-width:940px;margin:0 auto}
+header.top{padding-block:36px 20px;border-bottom:2px solid var(--ink);display:grid;gap:6px}
+.eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.08em;color:var(--muted);text-transform:uppercase}
+h1{font-size:30px;line-height:1.25;margin:0;text-wrap:balance}
+h2{font-size:22px;margin:0;text-wrap:balance}
+h3{font-size:17px;margin:0}
+p{margin:0}
+.lead{color:var(--muted);max-width:68ch}
+section{padding-block:40px 8px;display:grid;gap:16px}
+.sechead{display:flex;gap:12px;align-items:baseline;border-bottom:1px solid var(--line);padding-bottom:8px}
+.sechead .code{font-family:var(--f-mono);font-size:13px;color:var(--accent);border:1px solid var(--accent);padding:0 6px;border-radius:3px}
+.prose{display:grid;gap:10px;max-width:70ch}
+code{font-family:var(--f-mono);font-size:.9em;background:var(--paper2);padding:0 4px;border-radius:3px}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{border-bottom:1px solid var(--line);padding:7px 8px;text-align:left;vertical-align:top}
+th{font-weight:500;color:var(--muted);font-size:13px}
+td.m{font-family:var(--f-mono);white-space:nowrap}
+.tbl{overflow-x:auto}
+.term{background:var(--term);color:var(--term-fg);font-family:var(--f-mono);font-size:13px;line-height:1.6;padding:12px 14px;border-radius:4px;overflow-x:auto;white-space:pre;margin:0}
+.term .p{color:var(--term-dim)} .term .ok{color:var(--term-ok)} .term .er{color:var(--term-err)} .term .c{color:var(--term-dim)}
+.fig{border:1px solid var(--line)}
+.fig .cap{padding:8px 12px;border-bottom:1px solid var(--line);font-size:13px;font-weight:700}
+.fig .draw{overflow-x:auto;padding:8px}
+.fig svg{display:block;min-width:600px;width:100%;height:auto}
+svg text{font-family:var(--f-body);fill:var(--ink)}
+svg .box{fill:var(--paper2);stroke:var(--ink);stroke-width:1.2}
+svg .boxA{fill:var(--accent-soft);stroke:var(--accent);stroke-width:1.6}
+svg .boxL{fill:var(--paper);stroke:var(--later);stroke-width:1.2;stroke-dasharray:5 3}
+svg .wire{stroke:var(--ink);stroke-width:1.4;fill:none}
+svg .wireA{stroke:var(--accent);stroke-width:2;fill:none}
+svg .wireL{stroke:var(--later);stroke-width:1.4;fill:none;stroke-dasharray:5 3}
+svg .t{font-size:14px;font-weight:700} svg .s{font-size:12px;fill:var(--muted)} svg .m{font-family:var(--f-mono);font-size:11.5px} svg .ta{fill:var(--accent)} svg .tl{fill:var(--later)}
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--line)}
+.tabs button{font:inherit;font-size:14px;padding:6px 16px;border:1px solid transparent;border-bottom:0;background:none;color:var(--muted);cursor:pointer;border-radius:3px 3px 0 0}
+.tabs button[aria-selected="true"]{border-color:var(--line);background:var(--paper2);color:var(--ink);font-weight:500}
+.tabs button:focus-visible{outline:2px solid var(--accent)}
+.steps{display:grid;gap:0}
+.step{display:grid;grid-template-columns:64px 1fr;gap:16px;padding:18px 0;border-bottom:1px solid var(--line)}
+.step>.n{font-family:var(--f-mono);font-size:13px;color:var(--accent);border-top:2px solid var(--accent);padding-top:4px}
+.step>div{min-width:0;display:grid;gap:10px}
+.note{background:var(--paper2);border-left:3px solid var(--muted);padding:10px 14px;font-size:14px}
+.tasks{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,270px),1fr));gap:12px}
+.task{border:1px solid var(--line);padding:12px 14px;display:grid;gap:6px;align-content:start}
+.task .lv{font-family:var(--f-mono);font-size:12px;color:var(--accent)}
+.task p{font-size:14px}
+.road{display:grid;gap:0}
+.road>div{display:grid;grid-template-columns:120px 1fr;gap:14px;padding:10px 0;border-bottom:1px solid var(--line)}
+.road .when{font-family:var(--f-mono);font-size:13px;color:var(--muted)}
+.road .now{color:var(--accent);font-weight:600}
+@media (max-width:560px){h1{font-size:24px}.step{grid-template-columns:1fr;gap:6px}.road>div{grid-template-columns:1fr;gap:2px}}
+</style>
+
+<div class="wrap">
+<header class="top">
+  <div class="eyebrow">뉴턴 음향카메라 · 소프트웨어 · 팀 소개용</div>
+  <h1>소프트웨어 첫걸음: 파이썬으로 회전판과 스피커 움직이기</h1>
+  <p class="lead">실험 중에는 노트북 한 대가 회전판을 돌리고, 소리를 내고, 녹음하고, 계산까지 해요. 이 페이지는 그중 지금 가진 부품으로 바로 할 수 있는 두 가지, <b>회전판 조작</b>과 <b>스피커 소리 내기</b>부터 다뤄요. 아두이노가 없어도 시뮬레이터로 따라 할 수 있어요.</p>
+</header>
+
+<section>
+  <div class="sechead"><span class="code">1</span><h2>노트북이 하는 일</h2></div>
+  <div class="fig">
+    <div class="cap">그림 1 · 연결과 대화 방법 (파란 선이 이번에 다루는 부분)</div>
+    <div class="draw">
+      <svg viewBox="0 0 860 330" role="img" aria-label="노트북과 장치 연결도">
+        <rect x="320" y="120" width="220" height="90" rx="4" class="boxA"/>
+        <text x="430" y="152" class="t" text-anchor="middle">노트북 (파이썬)</text>
+        <text x="430" y="172" class="s" text-anchor="middle">Windows 또는 Mac</text>
+        <text x="430" y="192" class="m ta" text-anchor="middle">turntable.py · audio.py</text>
+
+        <rect x="20" y="30" width="230" height="80" rx="4" class="box"/>
+        <text x="135" y="60" class="t" text-anchor="middle">아두이노 + CNC 쉴드</text>
+        <text x="135" y="80" class="s" text-anchor="middle">turntable.ino → 모터·리밋 스위치</text>
+        <text x="135" y="98" class="s" text-anchor="middle">회전판</text>
+        <path d="M320 145 C 290 145, 280 70, 250 70" class="wireA"/>
+        <text x="262" y="122" class="m ta">USB 시리얼</text>
+        <text x="262" y="137" class="m ta">"g-30" ⇄ "ok"</text>
+
+        <rect x="20" y="220" width="230" height="80" rx="4" class="box"/>
+        <text x="135" y="250" class="t" text-anchor="middle">앰프 PAM8403</text>
+        <text x="135" y="270" class="s" text-anchor="middle">왼쪽 → 스피커 A</text>
+        <text x="135" y="288" class="s" text-anchor="middle">오른쪽 → 스피커 B</text>
+        <path d="M320 190 C 290 190, 280 260, 250 260" class="wireA"/>
+        <text x="262" y="214" class="m ta">이어폰 단자</text>
+        <text x="262" y="229" class="m ta">스테레오 소리</text>
+
+        <rect x="610" y="30" width="230" height="80" rx="4" class="boxL"/>
+        <text x="725" y="60" class="t tl" text-anchor="middle">UMA-16 (도착 전)</text>
+        <text x="725" y="80" class="s" text-anchor="middle">16채널 녹음, 48 kHz</text>
+        <path d="M610 70 C 580 70, 570 145, 540 145" class="wireL"/>
+        <text x="548" y="122" class="m tl">USB 오디오 입력</text>
+
+        <rect x="610" y="220" width="230" height="80" rx="4" class="boxL"/>
+        <text x="725" y="250" class="t tl" text-anchor="middle">카메라 (도착 전)</text>
+        <text x="725" y="270" class="s" text-anchor="middle">일반 USB 웹캠으로 인식</text>
+        <path d="M610 260 C 580 260, 570 190, 540 190" class="wireL"/>
+        <text x="548" y="229" class="m tl">USB 영상</text>
+      </svg>
+    </div>
+  </div>
+  <div class="prose">
+    <p><b>회전판</b>은 글자로 대화해요. 노트북이 <code>g-30</code>(−30°로 가라)을 한 줄 보내면, 아두이노가 모터를 돌리고 다 끝나면 <code>ok</code>를 돌려보내요. 문제가 있으면 <code>err ...</code>로 이유를 알려 줘요. 아두이노 IDE의 시리얼 모니터에 손으로 치던 것을 파이썬이 대신 보내는 거예요.</p>
+    <p><b>스피커</b>는 노트북 이어폰 단자의 왼쪽·오른쪽 채널로 구분해요. 왼쪽 채널에만 소리를 넣으면 스피커 A에서만 소리가 나요. 실험 2에서 A·B에 서로 다른 소리를 동시에 낼 수 있는 이유예요.</p>
+  </div>
+  <div class="tbl">
+  <table>
+    <thead><tr><th>시리얼 명령</th><th>파이썬</th><th>하는 일</th></tr></thead>
+    <tbody>
+      <tr><td class="m">?</td><td class="m">t.status()</td><td>각도, 스위치, 드라이버 켜짐, 원점 여부</td></tr>
+      <tr><td class="m">e1 / e0</td><td class="m">t.enable(True/False)</td><td>모터 드라이버 켜기·끄기 (끄면 힘이 빠짐)</td></tr>
+      <tr><td class="m">h</td><td class="m">t.home()</td><td>리밋 스위치로 원점을 찾고 0°로 감</td></tr>
+      <tr><td class="m">g-30</td><td class="m">t.goto(-30)</td><td>원점 기준 절대 각도로 이동 (−65 ~ +65)</td></tr>
+      <tr><td class="m">m10</td><td class="m">t.nudge(10)</td><td>원점 없이 조금 움직이기 (±30° 이내, 배선 시험용)</td></tr>
+      <tr><td class="m">o</td><td class="m">t.bench_origin()</td><td>벤치 원점: 리밋 스위치 없이 지금 위치를 0°로 믿음 (조립 전 책상 위 시험용)</td></tr>
+      <tr><td class="m">z</td><td class="m">t.set_zero()</td><td>지금 위치를 0°로 정함 (카메라 십자선에 맞춘 뒤)</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section>
+  <div class="sechead"><span class="code">2</span><h2>설치</h2></div>
+  <p class="prose">코드는 프로젝트 폴더의 <code>작업파일/파이썬</code>에 있어요. 파이썬 3.9 이상을 깔고, 그 폴더에서 아래를 한 번 실행해요. 가상환경(<code>.venv</code>)은 이 프로젝트용 패키지를 따로 담는 상자예요.</p>
+  <div>
+    <div class="tabs" role="tablist">
+      <button role="tab" id="tabWin" aria-selected="true" aria-controls="osWin">Windows</button>
+      <button role="tab" id="tabMac" aria-selected="false" aria-controls="osMac">Mac</button>
+    </div>
+<pre class="term" id="osWin" role="tabpanel"><span class="c"># PowerShell에서, 작업파일\파이썬 폴더로 이동한 뒤</span>
+<span class="p">&gt;</span> py -m venv .venv
+<span class="p">&gt;</span> .venv\Scripts\activate
+<span class="p">&gt;</span> pip install -r requirements.txt
+<span class="c"># 아두이노가 안 보이면 CH340 드라이버를 설치해요 (호환 보드)</span></pre>
+<pre class="term" id="osMac" role="tabpanel" hidden><span class="c"># 터미널에서, 작업파일/파이썬 폴더로 이동한 뒤</span>
+<span class="p">$</span> python3 -m venv .venv
+<span class="p">$</span> source .venv/bin/activate
+<span class="p">$</span> pip install -r requirements.txt
+<span class="c"># 포트 이름은 /dev/cu.usbmodem… 또는 /dev/cu.wchusbserial… 처럼 보여요</span></pre>
+  </div>
+  <p class="note">다음에 다시 쓸 때는 <code>activate</code> 줄만 다시 실행하면 돼요. 아두이노 IDE의 시리얼 모니터가 열려 있으면 파이썬이 포트를 열 수 없으니 꼭 닫아요.</p>
+</section>
+
+<section>
+  <div class="sechead"><span class="code">3</span><h2>따라 하기</h2></div>
+  <div class="steps">
+    <div class="step"><span class="n">step0</span><div>
+      <h3>장치 확인</h3>
+      <p>패키지가 다 깔렸는지, 아두이노와 오디오 장치가 보이는지 확인해요. UMA-16이 오면 "16채널 입력" 표시가 붙어요.</p>
+<pre class="term"><span class="p">$</span> python step0_check_devices.py
+  [있음] numpy  [있음] pyserial  [있음] sounddevice  [있음] soundfile
+시리얼 포트
+  COM5          USB-SERIAL CH340 (COM5)  <span class="ok">← 아두이노 후보 (CH340 (호환 보드))</span>
+오디오 장치
+    3  입력  0 / 출력  2  스피커/헤드폰   <span class="ok">[기본 출력 ← 스피커는 여기로 나가요]</span></pre>
+    </div></div>
+
+    <div class="step"><span class="n">step1</span><div>
+      <h3>회전판 돌리기</h3>
+      <p>먼저 시뮬레이터(<code>--port sim</code>)로 연습해요. 가짜 아두이노가 진짜와 같은 답을 같은 시간만큼 걸려서 보내요. 진짜 아두이노로 할 때는 <code>--port</code>를 빼요(4장).</p>
+<pre class="term"><span class="p">$</span> python step1_turntable.py --port sim
+[연결] sim: turntable ready. ? 로 상태 확인
+명령&gt; g10
+&lt;&lt; <span class="er">err 먼저 h로 원점을 찾으세요</span>
+명령&gt; h
+   <span class="ok">ok</span>
+명령&gt; g-30
+   <span class="ok">ok</span>
+명령&gt; ?
+&lt;&lt; angle_deg=-30.038 steps=-267 limit=떨어짐 driver=켜짐 homed=yes
+명령&gt; q</pre>
+      <p>−30°를 보냈는데 −30.038°가 나오는 건 모터가 한 바퀴를 3200칸으로 나눠 움직이기 때문이에요. 한 칸이 0.1125°라서 가장 가까운 칸(−267칸)으로 가요. 매번 원점 기준 칸 수로 계산하니 오차가 쌓이지 않아요. <code>--demo</code>를 붙이면 원점 → −30° → 0° → +30° → 0°를 자동으로 해요.</p>
+    </div></div>
+
+    <div class="step"><span class="n">step2</span><div>
+      <h3>스피커 A·B 소리 내기</h3>
+      <p>앰프 볼륨을 최소로 두고 시작해요. 아무 옵션 없이 실행하면 채널 확인 소리가 나와요. 스피커 A에서 낮은 소리, 쉼, 스피커 B에서 높은 소리 순서여야 해요.</p>
+<pre class="term"><span class="p">$</span> python step2_play_sound.py
+00_채널확인.wav  4.5초, 48000 Hz, 스테레오(파일에 적힌 대로 A·B)
+  기대: 스피커 A에서 낮은 소리(1 kHz) → 쉼 → 스피커 B에서 높은 소리(2 kHz)
+<span class="p">$</span> python step2_play_sound.py --tone 4000 --side B --seconds 2</pre>
+    </div></div>
+
+    <div class="step"><span class="n">step3</span><div>
+      <h3>돌리고 → 기다리고 → 소리 내기</h3>
+      <p>나중에 할 자동 데이터 수집과 같은 순서예요. 각도마다 0.5초 기다려 흔들림을 멈춘 뒤 소리를 내고, 결과를 <code>기록/</code> 폴더에 csv로 남겨요. UMA-16이 오면 "소리 내기"가 "소리 내면서 16채널 녹음"으로 바뀌어요.</p>
+<pre class="term"><span class="p">$</span> python step3_rotate_and_play.py --port sim --angles -60 0 45
+원점 찾는 중...
+ 1/3  목표  -60.0°  보고  -59.962°  이동 0.8초  소리 1000Hz 1.0s A
+ 2/3  목표   +0.0°  보고   +0.000°  이동 0.8초  소리 1000Hz 1.0s A
+ 3/3  목표  +45.0°  보고  +45.000°  이동 0.6초  소리 1000Hz 1.0s A
+기록 저장: 기록/step3_20261104_162205.csv</pre>
+    </div></div>
+  </div>
+</section>
+
+<section id="hardware">
+  <div class="sechead"><span class="code">4</span><h2>실제 하드웨어로 하기</h2></div>
+  <p class="prose">시뮬레이터에서 돌던 코드는 그대로 진짜 아두이노에서도 돌아요. <code>--port sim</code>만 빼면 돼요. 처음 켤 때는 아래 순서를 지켜요.</p>
+  <div class="steps">
+    <div class="step"><span class="n">HW1</span><div>
+      <h3>스케치 올리기</h3>
+      <p>아두이노 IDE 2에서 <code>작업파일/아두이노/turntable/turntable.ino</code>를 열고, 도구 → 보드는 <b>Arduino Uno</b>, 포트는 아두이노 포트를 골라 업로드해요. 11/4 판에 벤치 원점 명령 <code>o</code>가 추가됐으니 전에 올렸어도 다시 올려요. 끝나면 <b>시리얼 모니터를 닫아요</b>. 열려 있으면 파이썬이 포트를 못 열어요.</p>
+      <p class="note">Windows에서 포트가 안 보이면 호환 보드용 CH340 드라이버를 설치해요. Mac은 대부분 바로 보여요.</p>
+    </div></div>
+    <div class="step"><span class="n">HW2</span><div>
+      <h3>배선과 전류 맞추기</h3>
+      <p><code>문서/배선_작업순서.md</code> 1~2단계(통전 검사, A4988 Vref 약 0.9 A)를 먼저 끝내요. 12V를 켠 채로 모터 선을 꽂거나 빼면 드라이버가 바로 망가져요. 모터 축에는 테이프로 작은 깃발을 붙여 도는 방향을 볼 수 있게 해요.</p>
+    </div></div>
+    <div class="step"><span class="n">HW3</span><div>
+      <h3>점검 스크립트</h3>
+      <p><code>hw_check.py</code>가 하나씩 움직이고, 눈으로 본 결과를 y/n으로 물어요. 문제가 있으면 무엇을 고칠지 알려 주고, 결과를 <code>기록/</code>에 남겨요.</p>
+<pre class="term"><span class="p">$</span> python hw_check.py
+[2] 모터 드라이버 켜기 (12V 어댑터를 지금 꽂으세요)
+  ? 모터 축을 손가락으로 돌려 보면 뻑뻑하게 버티나요? [y / n / s] y
+  <span class="ok">→ 통과</span>
+[3] 방향: 10° 돌리기 (m10)
+  ? 위에서 볼 때 반시계 방향으로 조금(10°) 돌았나요? [y / n / b=떨기만 함 / s] b
+  <span class="er">→ 실패: 떨기만 함: 12V 끄고 한 코일 쌍의 두 선을 바꿔 꽂기 (배선 2단계)</span>
+...
+기록 저장: 기록/hw_check_20261104_163412.md</pre>
+      <p>점검 순서: 연결 → 드라이버 켜기 → 방향(10°) → 원점과 −60°·+60°·0° 왕복 → 리밋 스위치(10초 동안 눌러 보기) → 스피커 A·B 채널.</p>
+    </div></div>
+    <div class="step"><span class="n">HW4</span><div>
+      <h3>그다음은 step1~3을 진짜로</h3>
+      <div class="tbl"><table>
+        <thead><tr><th>지금 상태</th><th>원점</th><th>실행</th></tr></thead>
+        <tbody>
+          <tr><td>조립 전: 모터만 책상 위, 리밋 스위치 없음</td><td>벤치 원점 <code>o</code></td><td class="m">python step1_turntable.py --demo --bench</td></tr>
+          <tr><td>조립 후: 리밋 스위치가 −70°에 달림</td><td>원점 찾기 <code>h</code></td><td class="m">python step1_turntable.py --demo</td></tr>
+          <tr><td>스피커까지 연결</td><td>위와 같음</td><td class="m">python step3_rotate_and_play.py --bench --angles -30 0 30</td></tr>
+        </tbody>
+      </table></div>
+      <p>벤치 원점은 켤 때마다 지금 위치를 0°로 믿는 거라, 위치가 매번 달라져요. 실험에서는 조립 후 <code>h</code>로 잡은 원점만 써요.</p>
+    </div></div>
+  </div>
+</section>
+
+<section>
+  <div class="sechead"><span class="code">5</span><h2>연습 과제</h2></div>
+  <p class="prose">모두 <code>--port sim</code>으로 할 수 있어요. 코드는 <code>turntable.py</code>의 <code>Turntable</code>을 불러 쓰면 돼요.</p>
+  <div class="tasks">
+    <div class="task"><span class="lv">과제 1 · 처음</span><h3>실험 1 각도표</h3><p>−60°부터 +60°까지 5° 간격으로 돌리는 명령을 만들어요. 각도는 몇 개이고, step3로 한 바퀴 도는 데 몇 초 걸리나요?</p></div>
+    <div class="task"><span class="lv">과제 2 · 처음</span><h3>오류 일부러 내기</h3><p><code>g10</code>을 원점 없이, <code>g80</code>, <code>m40</code>을 보내 보고 어떤 <code>err</code>가 오는지 적어요. 파이썬에서는 <code>TurntableError</code>로 잡혀요.</p></div>
+    <div class="task"><span class="lv">과제 3 · 중간</span><h3>무작위 각도</h3><p>실험 3처럼 ±60° 안의 무작위 실수 각도 20개로 돌고, 10번마다 <code>t.home()</code>을 다시 하는 스크립트를 만들어요(<code>random.uniform</code>).</p></div>
+    <div class="task"><span class="lv">과제 4 · 중간</span><h3>A와 B 동시에</h3><p><code>audio.py</code>로 A에는 1 kHz, B에는 2 kHz를 동시에 내 봐요. 힌트: 모노 두 개를 <code>numpy.column_stack</code>으로 스테레오로 만들어요.</p></div>
+  </div>
+</section>
+
+<section>
+  <div class="sechead"><span class="code">6</span><h2>앞으로 붙일 것</h2></div>
+  <div class="road">
+    <div><span class="when now">지금</span><span>회전판 조작, 스피커 재생, 돌리기-소리 반복, 실제 하드웨어 점검 (이 페이지)</span></div>
+    <div><span class="when">UMA-16 전</span><span>가짜 16채널 데이터를 만드는 시뮬레이터, 지연-합 빔포밍으로 각도 찾기. 장비 없이 계산 코드를 먼저 완성해요.</span></div>
+    <div><span class="when">UMA-16 도착</span><span>16채널 녹음(재생과 동시에), 채널 순서 확인(손가락 튕기기), 카메라 화면 위에 소리 지도 겹치기</span></div>
+    <div><span class="when">실험 1·2</span><span>자동 수집(각도·소리·온도를 meta.csv에 기록), 빔 패턴과 분해능 계산</span></div>
+    <div><span class="when">실험 3</span><span>무작위 각도 수집, GCC-PHAT 특징, 딥러닝(RunPod)과 SRP-PHAT·MUSIC 비교</span></div>
+  </div>
+  <p class="note">파일: <code>작업파일/파이썬/</code>의 <code>turntable.py</code>(회전판 + 시뮬레이터), <code>audio.py</code>(소리), <code>step0~3</code> 스크립트, <code>hw_check.py</code>(하드웨어 점검), <code>README.md</code>. 아두이노 쪽은 <code>작업파일/아두이노/turntable/turntable.ino</code>예요.</p>
+</section>
+</div>
+
+<script>
+(function(){
+  const tabs=[["tabWin","osWin"],["tabMac","osMac"]];
+  function pick(id){tabs.forEach(([t,p])=>{const on=t===id;document.getElementById(t).setAttribute("aria-selected",on);document.getElementById(p).hidden=!on;});try{localStorage.setItem("newton-os",id)}catch(e){}}
+  tabs.forEach(([t])=>document.getElementById(t).addEventListener("click",()=>pick(t)));
+  let saved=null;try{saved=localStorage.getItem("newton-os")}catch(e){}
+  if(saved==="tabMac"||(!saved&&/Mac/.test(navigator.platform||"")))pick("tabMac");
+})();
+</script>

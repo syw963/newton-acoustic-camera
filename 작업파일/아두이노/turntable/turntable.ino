@@ -10,6 +10,8 @@
 //   h        원점 찾기 (리밋 스위치까지 갔다가 0°로 이동)
 //   g<각도>  절대 각도로 이동 (원점을 찾은 뒤에만) 예: g-45
 //   z        지금 위치를 0°로 정함 (카메라 십자선에 맞춘 뒤) → LIMIT_ANGLE_DEG 값을 알려 줌
+//   o        벤치 원점: 리밋 스위치 없이 지금 위치를 원점(0°)으로 믿음. 조립 전 책상 위 시험용
+//            (조립 후에는 h를 쓴다. o로 잡은 0°는 매번 달라진다)
 
 #include <Arduino.h>
 
@@ -147,6 +149,11 @@ void handle(char *s) {
       ok = moveSteps(degToSteps(v));
       break;
     case 'h': ok = home(); break;
+    case 'o':
+      pos = 0;
+      homed = true;
+      Serial.println(F("벤치 원점: 지금 위치를 0°로 정함 (리밋 스위치 확인 안 함)"));
+      break;
     case 'g':
       if (!homed) { Serial.println(F("err 먼저 h로 원점을 찾으세요")); ok = false; break; }
       if (v < SOFT_MIN_DEG || v > SOFT_MAX_DEG) { Serial.println(F("err 범위 밖")); ok = false; break; }
