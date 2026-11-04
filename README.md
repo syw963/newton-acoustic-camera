@@ -25,6 +25,7 @@
 
 ## 작업파일
 
+- `작업파일/방향추정/locate_sound.py` — 가상 16채널 녹음으로 소리 방향을 계산하고 그림에 점을 찍는 첫 버전. 프로젝트 폴더에서 `python3 작업파일/방향추정/locate_sound.py --demo`. 실제 녹음은 미검증. 사용법은 같은 폴더의 `README.md`.
 - `작업파일/실험계획서/content.py` — 계획서 본문. 고친 뒤 `python build2.py`(pdf) → `node make.js`(docx)
 - `작업파일/아두이노/turntable/turntable.ino` — 회전판 제어·배선 테스트 (명령: `?`, `w`, `e1/e0`, `m`, `h`, `g`, `z`)
 - `작업파일/신호/make_signals.py` — 실험용 소리 파일 생성. 만들어 둔 파일은 `signals/` (채널 확인용 `00_채널확인.wav` 포함)
