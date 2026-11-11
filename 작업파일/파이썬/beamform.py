@@ -71,13 +71,23 @@ def beam_width(angles, p):
     return float(angles[hi] - angles[lo])
 
 
+def find_peaks(angles, p, floor_db=-6.0):
+    """봉우리(양옆보다 큰 점) 중 최대보다 floor_db 이상 큰 것의 각도, 큰 순서."""
+    k = [i for i in range(1, len(p) - 1) if p[i] >= p[i - 1] and p[i] > p[i + 1]]
+    k += [i for i in (0, len(p) - 1) if p[i] == p.max()]
+    k = [i for i in k if 10 * np.log10(p[i]) >= floor_db]
+    return [float(angles[i]) for i in sorted(k, key=lambda i: -p[i])]
+
+
 def simulate(angle_deg, fs=48000, seconds=2.0, temp_c=20.0, snr_db=20.0, seed=0):
-    """θ 방향 백색잡음이 16채널에 닿은 가짜 녹음 (표본 수, 16). 프로그램 점검용."""
+    """θ 방향 백색잡음이 16채널에 닿은 가짜 녹음 (표본 수, 16). 프로그램 점검용.
+    angle_deg에 여러 각도를 주면 서로 다른 잡음 여러 개를 더한다."""
     rng = np.random.default_rng(seed)
     n = int(fs * seconds)
-    S = np.fft.rfft(rng.standard_normal(n))
     f = np.fft.rfftfreq(n, 1 / fs)
-    tau = arrival_delays(angle_deg, temp_c)[0]
-    x = np.fft.irfft(S[:, None] * np.exp(-2j * np.pi * f[:, None] * tau[None, :]), n, axis=0)
+    x = 0
+    for tau in arrival_delays(angle_deg, temp_c):
+        S = np.fft.rfft(rng.standard_normal(n))
+        x = x + np.fft.irfft(S[:, None] * np.exp(-2j * np.pi * f[:, None] * tau[None, :]), n, axis=0)
     x += rng.standard_normal(x.shape) * x.std() * 10 ** (-snr_db / 20)
     return x
