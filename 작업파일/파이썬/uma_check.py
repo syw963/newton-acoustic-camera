@@ -153,15 +153,25 @@ def map_channels(idx, d, host, thresh_db, margin_db):
             x = q.get()
             if np.max(db(x) - floor_db) < thresh_db:
                 continue
+            # 큰 블록만 더한다. 0.4초 조용하거나 3초가 지나면 한 번 끝
+            # (방 소리가 처음보다 커져도 끝나도록 기준을 바닥 잡음 + 10 dB가 아니라 thresh - 10 dB로 둠)
             energy = x ** 2
-            quiet = 0
-            while quiet < int(0.5 / BLOCK_S):  # 0.5초 조용하면 한 번 끝
+            peak = np.max(db(x) - floor_db)
+            quiet, n = 0, 1
+            while quiet < int(0.4 / BLOCK_S) and n < int(3.0 / BLOCK_S):
                 x = q.get()
-                energy += x ** 2
-                quiet = quiet + 1 if np.max(db(x) - floor_db) < 10 else 0
+                n += 1
+                ex = np.max(db(x) - floor_db)
+                if ex >= thresh_db - 10:
+                    energy += x ** 2
+                    peak = max(peak, ex)
+                    quiet = 0
+                else:
+                    quiet += 1
             order = np.argsort(energy)[::-1]
             ch, second = order[0], order[1]
             m = 10 * np.log10(energy[ch] / max(energy[second], 1e-20))
+            print(f"  (소리 {n * BLOCK_S:.1f}초, 바닥 잡음보다 최대 {peak:.0f} dB)", flush=True)
             if m < margin_db:
                 print(f"  ? 여러 채널에 비슷하게 들어왔어요 (ch{ch + 1}과 ch{second + 1} 차이 {m:.1f} dB). "
                       f"위치 {k + 1}을 마이크 구멍 바로 위에서 다시 긁으세요.", flush=True)
@@ -174,7 +184,7 @@ def map_channels(idx, d, host, thresh_db, margin_db):
                 continue
             pos_to_ch[k] = int(ch)
             margins[k] = m
-            print(f"  위치 {k + 1:2d} ({position_name(k)}) → ch{ch + 1:2d}   (2위 ch{second + 1}보다 {m:.1f} dB 큼)",
+            print(f"\a  위치 {k + 1:2d} ({position_name(k)}) → ch{ch + 1:2d}   (2위 ch{second + 1}보다 {m:.1f} dB 큼)",
                   flush=True)
             k += 1
             if k < CHANNELS:
@@ -225,7 +235,7 @@ def main():
     ap = argparse.ArgumentParser(description="UMA-16 점검")
     ap.add_argument("--map", action="store_true", help="마이크를 하나씩 긁어 채널 위치표 만들기")
     ap.add_argument("--seconds", type=float, default=None, help="레벨 보기 시간 (기본: Ctrl+C까지)")
-    ap.add_argument("--thresh", type=float, default=25.0, help="긁기로 볼 크기 (바닥 잡음보다 dB)")
+    ap.add_argument("--thresh", type=float, default=35.0, help="긁기로 볼 크기 (바닥 잡음보다 dB)")
     ap.add_argument("--margin", type=float, default=6.0, help="1위 채널이 2위보다 커야 하는 dB")
     args = ap.parse_args()
 
