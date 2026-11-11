@@ -1,0 +1,2 @@
+﻿input_mode,hardware_accuracy_verified,azimuth_deg,elevation_deg,channel_count,sample_rate_hz,duration_seconds,temperature_c,grid_step_deg
+simulation,False,20.0,10.0,16,48000,3.0,20,2

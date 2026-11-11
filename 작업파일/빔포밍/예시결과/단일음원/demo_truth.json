@@ -1,0 +1,10 @@
+{
+  "directions_deg": [
+    [
+      20,
+      10
+    ]
+  ],
+  "model": "ideal_plane_wave",
+  "hardware_measurement": false
+}
