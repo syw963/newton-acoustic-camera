@@ -13,6 +13,7 @@ try:
     from beamforming import beamform, sound_speed_from_temperature
     from data_io import load_positions, load_wav, save_result_tables
     from simulate import simulate_sources
+    from recording import capture_recording, show_devices
 except ModuleNotFoundError as error:
     sys.exit(f"필요한 패키지({error.name})가 없어. 프로젝트 폴더의 터미널에서 다음을 실행해 줘:\n"
              ".venv/bin/python -m pip install -r 작업파일/빔포밍/requirements.txt")
@@ -26,7 +27,14 @@ def parse_arguments():
     inputs = parser.add_mutually_exclusive_group(required=True)
     inputs.add_argument("--demo", action="store_true", help="가상 16채널 녹음으로 실행")
     inputs.add_argument("--wav", type=Path, help="동시에 녹음한 다채널 WAV")
-    parser.add_argument("--mic-positions", type=Path, help="실제 채널 순서를 확인한 좌표 CSV")
+    inputs.add_argument("--record", action="store_true", help="UMA-16 녹음과 스피커 재생 후 자동 분석")
+    inputs.add_argument("--devices", action="store_true", help="장치 목록만 확인 (녹음·재생 없음)")
+    parser.add_argument("--mic-positions", type=Path, help="좌표 CSV. 실제 입력 기본값은 USB 단자가 아래인 UMA-16 실측 순서")
+    parser.add_argument("--mic", help="입력 장치 번호 또는 이름 (기본 UMA-16 자동 선택)")
+    parser.add_argument("--out", help="출력 장치 번호 또는 이름 (기본 시스템 출력)")
+    parser.add_argument("--sound", default="exp3_white", help="녹음 때 재생할 시험 소리, 기본 exp3_white")
+    parser.add_argument("--speaker", choices=("A", "B", "AB"), default="A", help="재생할 스피커")
+    parser.add_argument("--volume", type=float, default=0.3, help="재생 볼륨, 0 초과~1 이하")
     parser.add_argument("--azimuth", type=float, default=20, help="가상 음원의 가로 각도, 기본 +20°")
     parser.add_argument("--elevation", type=float, default=10, help="가상 음원의 세로 각도, 기본 +10°")
     parser.add_argument("--two-sources", action="store_true", help="-30°와 +30°의 독립 가상 음원 두 개")
@@ -39,8 +47,6 @@ def parse_arguments():
     parser.add_argument("--block-size", type=int, default=1024, help="FFT 한 구간의 샘플 수")
     parser.add_argument("--output-dir", type=Path, help="결과를 저장할 새 폴더. 기존 폴더는 덮어쓰지 않음")
     args = parser.parse_args()
-    if not args.demo and args.mic_positions is None:
-        parser.error("입력 WAV에는 --mic-positions로 실제 채널 순서의 좌표 파일을 지정해야 해.")
     if args.demo and (args.mic_positions is not None or args.start != 0):
         parser.error("--demo는 예시 좌표와 시작 시점 0을 사용해.")
     if not args.demo and (args.two_sources or args.azimuth != 20 or args.elevation != 10):
@@ -49,24 +55,42 @@ def parse_arguments():
         parser.error("--two-sources는 (-30°, 0°), (+30°, 0°)를 사용해.")
     if not np.isfinite(args.duration) or args.duration <= 0 or not np.isfinite(args.start) or args.start < 0:
         parser.error("분석 길이는 양수, 시작 시점은 0 이상의 유한한 숫자여야 해.")
+    if args.record and (args.start != 0 or args.duration != 3):
+        parser.error("--record는 소리가 잡힌 구간을 자동 선택해. --start·--duration은 --wav에서 사용해 줘.")
+    if not np.isfinite(args.volume) or not 0 < args.volume <= 1:
+        parser.error("볼륨은 0보다 크고 1 이하여야 해.")
     return args
 
 
 def main():
     args = parse_arguments()
     try:
+        if args.devices:
+            show_devices()
+            return 0
         # 1. 입력 준비. 정답 각도는 가상 녹음 생성과 비교에만 쓰고 beamform에는 주지 않는다.
         sound_speed_from_temperature(args.temperature)
-        positions_path = args.mic_positions or HERE / "mic_positions_example.csv"
+        default_positions = "mic_positions_example.csv" if args.demo else "mic_positions_uma16_usb_down.csv"
+        positions_path = args.mic_positions or HERE / default_positions
         positions = load_positions(positions_path)
+        if args.record:
+            if len(positions) != 16:
+                raise ValueError("실제 녹음의 좌표는 16개 채널과 맞아야 해.")
+            # 잘못된 분석 조건 때문에 녹음 뒤에 실패하지 않도록 먼저 확인한다.
+            if not np.isfinite(args.fmin) or not np.isfinite(args.fmax) or not 0 < args.fmin < args.fmax <= 24000:
+                raise ValueError("실제 녹음 분석 대역은 0 < fmin < fmax ≤ 24000Hz여야 해.")
+            if args.block_size < 64 or args.block_size % 2:
+                raise ValueError("FFT 길이는 64 이상의 짝수여야 해.")
         if args.output_dir is not None:
             output = args.output_dir
             output.mkdir(parents=True, exist_ok=False)
         else:
             output_root = HERE / "결과"
             output_root.mkdir(exist_ok=True)
-            output = Path(tempfile.mkdtemp(prefix="demo_" if args.demo else "wav_", dir=str(output_root)))
+            prefix = "demo_" if args.demo else ("recording_" if args.record else "wav_")
+            output = Path(tempfile.mkdtemp(prefix=prefix, dir=str(output_root)))
         truth = None
+        recording_metadata = None
         recording_path = args.wav
         if args.demo:
             truth = [(-30.0, 0.0), (30.0, 0.0)] if args.two_sources else [(args.azimuth, args.elevation)]
@@ -75,9 +99,14 @@ def main():
             sf.write(str(recording_path), samples, rate, subtype="PCM_24")
             (output / "demo_truth.json").write_text(json.dumps({"directions_deg": truth,
                 "model": "ideal_plane_wave", "hardware_measurement": False}, indent=2), encoding="utf-8")
+        elif args.record:
+            recording_path, recording_metadata = capture_recording(output, sound=args.sound, speaker=args.speaker,
+                volume=args.volume, mic=args.mic, out_device=args.out)
+            args.start = recording_metadata["quality"]["start_seconds"]
+            args.duration = recording_metadata["quality"]["duration_seconds"]
         samples, rate = load_wav(recording_path, args.start, args.duration)
 
-        # 2. 방향 계산. 나중에 실제 녹음을 연결할 때도 이 함수를 그대로 사용한다.
+        # 2. 방향 계산. 가상 녹음·저장된 WAV·방금 녹음한 소리가 같은 함수를 사용한다.
         print(f"{samples.shape[1]}채널, {len(samples) / rate:.2f}초의 녹음으로 방향을 계산하는 중…", flush=True)
         result = beamform(samples, rate, positions, fmin=args.fmin, fmax=args.fmax,
                           temperature_c=args.temperature, block_size=args.block_size,
@@ -88,7 +117,7 @@ def main():
         azimuth, elevation = result.peak_direction
         info = {
             "algorithm": "frequency_domain_delay_and_sum",
-            "input_mode": "simulation" if args.demo else "file",
+            "input_mode": "simulation" if args.demo else ("recording" if args.record else "file"),
             "hardware_accuracy_verified": False,
             # 공유할 결과에 개인 컴퓨터의 계정명·절대 경로를 넣지 않는다.
             "input_wav": recording_path.name,
@@ -109,6 +138,8 @@ def main():
             "power_unit": "uncalibrated_mean_square", "relative_db_reference": "maximum_of_this_map",
             "software_versions": {"python": sys.version.split()[0], "numpy": np.__version__, "soundfile": sf.__version__},
         }
+        if recording_metadata is not None:
+            info["recording"] = recording_metadata
         np.savez_compressed(output / "power_map.npz", azimuths_deg=result.azimuths_deg,
                             elevations_deg=result.elevations_deg, power=result.power, relative_db=result.relative_db)
         (output / "result.json").write_text(json.dumps(info, ensure_ascii=False, indent=2), encoding="utf-8")
@@ -128,7 +159,10 @@ def main():
         print(f"결과 요약 표: {output / 'summary.csv'}")
         print(f"방향별 그래프 데이터: {output / 'direction_curve.csv'}")
         return 0
-    except (ValueError, OSError, RuntimeError, ImportError) as error:
+    except KeyboardInterrupt:
+        print("사용자가 실행을 중단했어.", file=sys.stderr)
+        return 130
+    except (ValueError, OSError, RuntimeError, ImportError, LookupError) as error:
         print(f"실행을 멈췄어: {error}", file=sys.stderr)
         return 1
 
