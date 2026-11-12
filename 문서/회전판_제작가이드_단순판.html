@@ -1,0 +1,807 @@
+<title>회전판 제작 가이드 단순판</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* 레이아웃: 한 줄 본문(최대 780px) + 위쪽 장 이동 띠. 단계는 번호 순서 그대로, 그림은 단계 바로 위에 둔다 */
+:root {
+  --bg: #f4f6f5;
+  --surface: #ffffff;
+  --fg: #1b2220;
+  --muted: #5b6662;
+  --line: #d2dad6;
+  --accent: #1c5d88;
+  --accent-soft: #e2edf4;
+  --warn: #a54d1a;
+  --warn-soft: #f7eae1;
+  --ok: #2c7549;
+  --wood: #e6d8bf;
+  --wood-edge: #8a7552;
+  --metal: #b9c3c8;
+  --font-body: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111614; --surface: #18201d; --fg: #e2e8e5; --muted: #9ba7a2; --line: #2c3632;
+    --accent: #80b7de; --accent-soft: #1a2a35; --warn: #e5945f; --warn-soft: #34241a; --ok: #6cc28f;
+    --wood: #4b4030; --wood-edge: #b59c72; --metal: #5c6a71; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111614; --surface: #18201d; --fg: #e2e8e5; --muted: #9ba7a2; --line: #2c3632;
+  --accent: #80b7de; --accent-soft: #1a2a35; --warn: #e5945f; --warn-soft: #34241a; --ok: #6cc28f;
+  --wood: #4b4030; --wood-edge: #b59c72; --metal: #5c6a71; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--fg); font-family: var(--font-body);
+  font-size: 16px; line-height: 1.7;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 0 64px;
+}
+.wrap { max-width: 780px; margin: 0 auto; }
+header.top { padding-block: 40px 20px; border-bottom: 1px solid var(--line); }
+.eyebrow { font-size: 13px; letter-spacing: .06em; color: var(--muted); font-weight: 500; }
+h1 { font-size: 30px; line-height: 1.3; margin: 6px 0 10px; text-wrap: balance; }
+h2 { font-size: 22px; line-height: 1.35; margin: 0 0 12px; text-wrap: balance; }
+h3 { font-size: 17px; margin: 0; line-height: 1.45; }
+p { margin: 0; }
+.lead { color: var(--muted); max-width: 65ch; }
+nav.toc {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5;
+  background: var(--bg); border-bottom: 1px solid var(--line);
+  display: flex; flex-wrap: wrap; gap: 4px 14px; padding-block: 10px; font-size: 14px;
+}
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+nav.toc a { color: var(--accent); text-decoration: none; }
+nav.toc a:hover, nav.toc a:focus-visible { text-decoration: underline; }
+section.ch { padding-block: 36px 8px; display: grid; gap: 16px; }
+.ch-no { font-family: var(--font-mono); color: var(--accent); font-size: 14px; }
+.note { background: var(--accent-soft); border-radius: 6px; padding: 14px 16px; display: grid; gap: 6px; }
+.warn { background: var(--warn-soft); border-radius: 6px; padding: 14px 16px; display: grid; gap: 6px; }
+.warn strong { color: var(--warn); }
+ul, ol { margin: 0; padding-left: 1.3em; display: grid; gap: 4px; }
+code, .mono { font-family: var(--font-mono); font-size: .92em; }
+code { background: var(--accent-soft); padding: 1px 5px; border-radius: 4px; }
+.tbl { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 15px; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-weight: 500; color: var(--muted); font-size: 13px; letter-spacing: .03em; }
+td.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+figure { margin: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 12px; display: grid; gap: 8px; }
+figure .fig { overflow-x: auto; }
+figure svg { display: block; width: 100%; min-width: 460px; height: auto; }
+figcaption { font-size: 14px; color: var(--muted); }
+.legend { font-size: 14px; display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 2px 16px; padding-left: 0; list-style: none; }
+.legend b { font-family: var(--font-mono); color: var(--accent); margin-right: 4px; }
+/* 단계 */
+ol.steps { list-style: none; padding: 0; gap: 0; }
+li.step { display: grid; grid-template-columns: 44px 1fr; gap: 0 12px; padding-block: 18px; border-top: 1px solid var(--line); }
+li.step:first-child { border-top: 0; }
+.sn { font-family: var(--font-mono); font-size: 20px; font-weight: 500; color: var(--accent); line-height: 1.3; }
+.sb { display: grid; gap: 8px; min-width: 0; }
+.who { font-size: 12px; color: var(--muted); letter-spacing: .04em; }
+label.check { display: flex; gap: 10px; align-items: flex-start; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 8px 12px; font-size: 15px; cursor: pointer; }
+label.check input { margin-top: 5px; width: 18px; height: 18px; accent-color: var(--ok); flex: none; }
+label.check:has(input:checked) { border-color: var(--ok); }
+label.check:has(input:checked) span { color: var(--muted); }
+/* 실측 계산 */
+.calc { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 16px; display: grid; gap: 14px; }
+.inputs { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px 16px; }
+.inputs label { display: grid; gap: 4px; font-size: 14px; }
+.inputs small { color: var(--muted); font-size: 12px; line-height: 1.4; }
+.inputs input, .inputs select { font: inherit; font-family: var(--font-mono); padding: 6px 8px; border: 1px solid var(--line); border-radius: 4px; background: var(--bg); color: var(--fg); width: 100%; }
+.inputs input:focus-visible, .inputs select:focus-visible, button:focus-visible, label.check input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.results { display: grid; gap: 6px; padding: 0; list-style: none; }
+.results li { display: grid; grid-template-columns: 1fr auto; gap: 12px; padding: 6px 0; border-bottom: 1px solid var(--line); font-size: 15px; }
+.results li span:last-child { font-family: var(--font-mono); text-align: right; }
+.results .bad { color: var(--warn); }
+.results .good { color: var(--ok); }
+.btns { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+button { font: inherit; font-size: 14px; padding: 6px 14px; border-radius: 4px; border: 1px solid var(--accent); background: var(--accent); color: var(--surface); cursor: pointer; }
+button.ghost { background: transparent; color: var(--accent); }
+.copied { font-size: 13px; color: var(--ok); }
+.progress { font-size: 14px; color: var(--muted); font-family: var(--font-mono); }
+/* 그림 공통 */
+svg text { font-family: var(--font-body); fill: var(--fg); }
+svg .t-s { font-size: 7px; }
+svg .t-m { font-size: 8.5px; }
+svg .t-mono { font-family: var(--font-mono); font-size: 7px; fill: var(--muted); }
+svg .wood { fill: var(--wood); stroke: var(--wood-edge); stroke-width: .7; }
+svg .metal { fill: var(--metal); stroke: var(--fg); stroke-width: .5; }
+svg .ink { fill: none; stroke: var(--fg); stroke-width: .7; }
+svg .dash { fill: none; stroke: var(--muted); stroke-width: .6; stroke-dasharray: 3 2; }
+svg .cl { fill: none; stroke: var(--muted); stroke-width: .5; stroke-dasharray: 6 2 1 2; }
+svg .hole { fill: var(--surface); stroke: var(--accent); stroke-width: .9; }
+svg .zone { fill: var(--warn-soft); stroke: var(--warn); stroke-width: .7; stroke-dasharray: 3 2; }
+svg .acc { fill: var(--accent); }
+svg .lead { fill: none; stroke: var(--muted); stroke-width: .4; }
+svg .badge { fill: var(--surface); stroke: var(--accent); stroke-width: .8; }
+svg .badge-t { font-family: var(--font-mono); font-size: 7.5px; fill: var(--accent); text-anchor: middle; dominant-baseline: central; }
+svg .board { fill: var(--ok); stroke: var(--fg); stroke-width: .4; opacity: .85; }
+@media (max-width: 520px) {
+  h1 { font-size: 25px; }
+  li.step { grid-template-columns: 32px 1fr; }
+  .sn { font-size: 17px; }
+}
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+</style>
+
+<div class="wrap">
+<header class="top">
+  <div class="eyebrow">뉴턴 음향카메라 · 장치 제작 · 2026-11-12 단순판</div>
+  <h1>회전판 제작 가이드 (단순판)</h1>
+  <p class="lead">이미 잘라 둔 판으로 회전판을 만드는 순서예요. 11/4 가이드에서 손이 안 닿는 곳을 조이던 부분과 9 mm 틈에 부품을 넣던 부분을 없앴어요. 위에서부터 순서대로 하면 되고, 단계마다 확인 칸을 체크해 두면 이 브라우저에 남아요. 치수는 모두 mm예요.</p>
+</header>
+
+<nav class="toc" aria-label="장 이동">
+  <a href="#changes">바뀐 점</a>
+  <a href="#measure">0 실측·계산</a>
+  <a href="#overview">1 전체 모습</a>
+  <a href="#holes">2 표시·구멍</a>
+  <a href="#wood">3 목공</a>
+  <a href="#rotor">4 회전부</a>
+  <a href="#array">5 배열·카메라</a>
+  <a href="#run">6 배선·시운전</a>
+  <a href="#speaker">7 스피커 통</a>
+  <a href="#buy">준비물</a>
+  <span class="progress" id="progress"></span>
+</nav>
+
+<!-- 바뀐 점 -->
+<section class="ch" id="changes">
+  <h2>11/4 가이드에서 바뀐 점</h2>
+  <div class="tbl"><table>
+    <thead><tr><th>부분</th><th>11/4 가이드</th><th>단순판</th></tr></thead>
+    <tbody>
+      <tr><td>레이지수전 아랫판</td><td>M4 볼트를 위에서 꽂고 모터판 아래에서 너트</td><td><b>목재 나사 3.5×10</b>을 위에서 박음. 너트 없음</td></tr>
+      <tr><td>레이지수전 윗판</td><td>접근 구멍으로 볼트를 하나씩 올려 조임</td><td><b>얇은 양면테이프</b>로 회전판에 붙임. 회전은 플랜지가 시키고, 레이지수전은 무게만 받으므로 이걸로 충분해요</td></tr>
+      <tr><td>리밋 스위치</td><td>9 mm 틈에 눕혀 달고 트리거 볼트로 누름</td><td><b>달지 않음.</b> 원점은 연필 표시에 맞추고 <code>o</code> 명령으로 정함</td></tr>
+      <tr><td>접시 구멍</td><td>모터판 윗면, 회전판 아랫면, 바닥판 아랫면</td><td><b>바닥판 아랫면 6곳만.</b> 세움판 나사를 레이지수전 바깥으로 옮겨서 회전판 접시 구멍이 필요 없어요</td></tr>
+      <tr><td>카메라</td><td>세움판에 Ø32 구멍</td><td>세움판 윗모서리 가운데에 <b>집게로 끼움</b></td></tr>
+      <tr><td>플랜지 볼트 구멍</td><td>Ø3.5</td><td><b>Ø4</b>. 조금 어긋나도 볼트가 들어가요</td></tr>
+    </tbody>
+  </table></div>
+  <div class="warn">
+    <p><strong>리밋 스위치를 빼서 생기는 일</strong></p>
+    <p>전원을 끄거나 모터가 스텝을 잃으면 원점이 사라져요. 켤 때마다 6장 16단계의 0° 맞추기를 다시 해요. 실험 3 자동 수집에서 50회마다 하던 원점 확인은 정면 스피커를 빔포밍으로 다시 재는 방법으로 대신해요. 회전판을 다 만든 뒤 필요하면 옆벽 위에 스위치를 따로 달 수 있어요.</p>
+  </div>
+</section>
+
+<!-- 0 실측 -->
+<section class="ch" id="measure">
+  <div class="ch-no">0</div>
+  <h2>실측과 계산</h2>
+  <p>구멍을 뚫기 전에 아래 다섯 가지만 재요. 쇠자로 0.5 mm까지 읽어요. 값을 넣으면 오른쪽 결과가 바로 바뀌어요.</p>
+  <div class="calc">
+    <div class="inputs">
+      <label for="in-T">모터판 두께 T
+        <input id="in-T" type="number" step="0.1" value="12" inputmode="decimal">
+        <small>합판 가장자리에서 잼. 보통 11.5~12.5</small></label>
+      <label for="in-L">레이지수전 전체 높이 L
+        <input id="in-L" type="number" step="0.1" value="9" inputmode="decimal">
+        <small>책상에 놓고 윗판 윗면까지</small></label>
+      <label for="in-S">레이지수전 한 변 S
+        <input id="in-S" type="number" step="1" value="152" inputmode="decimal">
+        <small>사각형 바깥 길이. 6인치면 약 152</small></label>
+      <label for="in-F">플랜지 지름
+        <input id="in-F" type="number" step="0.5" value="22" inputmode="decimal">
+        <small>커플링의 넓은 원판 부분</small></label>
+      <label for="in-C">레이지수전 가운데 구멍 지름
+        <input id="in-C" type="number" step="1" value="60" inputmode="decimal">
+        <small>원이 아니면 가장 좁은 폭</small></label>
+      <label for="in-th">플랜지 구멍 나사산
+        <select id="in-th">
+          <option value="yes">있음 (M3 볼트가 손으로 돌아 들어감)</option>
+          <option value="no">없음 (그냥 통과함)</option>
+          <option value="unk" selected>아직 안 해 봄</option>
+        </select>
+        <small>M3 볼트를 플랜지 구멍에 손으로 돌려 봐요</small></label>
+    </div>
+    <ul class="results" id="results" aria-live="polite"></ul>
+    <div class="btns">
+      <button type="button" id="copy">결과 복사</button>
+      <span class="copied" id="copied" hidden>복사했어요. 팀 채팅이나 진행상황에 붙여 넣으세요.</span>
+    </div>
+  </div>
+</section>
+
+<!-- 1 전체 -->
+<section class="ch" id="overview">
+  <div class="ch-no">1</div>
+  <h2>전체 모습</h2>
+  <figure>
+    <div class="fig">
+    <svg viewBox="0 0 370 330" role="img" aria-label="회전축을 지나 옆에서 본 단면도">
+      <!-- 축 -->
+      <line class="cl" x1="200" y1="12" x2="200" y2="306"/>
+      <text class="t-mono" x="203" y="12">회전축</text>
+      <!-- 책상 -->
+      <line class="ink" x1="40" y1="320" x2="335" y2="320"/>
+      <!-- 옆벽 (단면 뒤쪽) -->
+      <rect class="dash" x="75" y="238" width="250" height="70"/>
+      <!-- 바닥판 -->
+      <rect class="wood" x="75" y="308" width="250" height="12"/>
+      <!-- 모터판 (가운데 구멍) -->
+      <rect class="wood" x="75" y="226" width="112.5" height="12"/>
+      <rect class="wood" x="212.5" y="226" width="112.5" height="12"/>
+      <!-- 모터 -->
+      <rect class="metal" x="178.85" y="238" width="42.3" height="40"/>
+      <rect class="metal" x="190" y="236" width="20" height="2"/>
+      <!-- 축, 커플링 -->
+      <rect class="metal" x="197.5" y="214" width="5" height="24"/>
+      <rect class="metal" x="195" y="221" width="10" height="14"/>
+      <rect class="metal" x="187.5" y="217" width="25" height="4"/>
+      <!-- 레이지수전 -->
+      <rect class="metal" x="124" y="224.5" width="46" height="1.5"/>
+      <rect class="metal" x="230" y="224.5" width="46" height="1.5"/>
+      <rect class="metal" x="124" y="217" width="46" height="1.5"/>
+      <rect class="metal" x="230" y="217" width="46" height="1.5"/>
+      <circle class="metal" cx="132" cy="221.6" r="3"/>
+      <circle class="metal" cx="268" cy="221.6" r="3"/>
+      <!-- 회전판 (가운데 Ø8) -->
+      <rect class="wood" x="100" y="205" width="96" height="12"/>
+      <rect class="wood" x="204" y="205" width="96" height="12"/>
+      <!-- 플랜지 볼트 -->
+      <rect class="metal" x="191.5" y="202" width="5" height="3"/>
+      <rect class="metal" x="193" y="205" width="2" height="16"/>
+      <rect class="metal" x="203.5" y="202" width="5" height="3"/>
+      <rect class="metal" x="205" y="205" width="2" height="16"/>
+      <!-- 세움판, 받침대 -->
+      <rect class="wood" x="211.6" y="35" width="12" height="170"/>
+      <polygon class="wood" points="223.6,205 283.6,205 223.6,105"/>
+      <!-- UMA-16, 서포트 -->
+      <rect class="metal" x="201.6" y="70" width="10" height="4"/>
+      <rect class="metal" x="201.6" y="166" width="10" height="4"/>
+      <rect class="board" x="200" y="54" width="1.6" height="132"/>
+      <!-- 카메라 -->
+      <rect class="metal" x="206" y="21" width="22" height="14" rx="2"/>
+      <circle class="hole" cx="206" cy="28" r="3.5"/>
+      <!-- 앞 표시 -->
+      <text class="t-m" x="42" y="140">← 앞</text>
+      <text class="t-s" x="42" y="152">(스피커 쪽)</text>
+      <!-- 높이 (책상 기준) -->
+      <g class="t-mono">
+        <text x="70" y="311" text-anchor="end">12</text>
+        <text x="70" y="241" text-anchor="end">82</text>
+        <text x="70" y="229" text-anchor="end">94</text>
+        <text x="96" y="214" text-anchor="end">103</text>
+        <text x="96" y="204" text-anchor="end">115</text>
+        <text x="190" y="123" text-anchor="end">200</text>
+      </g>
+      <line class="lead" x1="192" y1="120" x2="200" y2="120"/>
+      <!-- 번호 -->
+      <g>
+        <line class="lead" x1="228" y1="26" x2="343" y2="26"/>
+        <line class="lead" x1="201" y1="96" x2="343" y2="60"/>
+        <line class="lead" x1="218" y1="90" x2="343" y2="92"/>
+        <line class="lead" x1="245" y1="185" x2="343" y2="130"/>
+        <line class="lead" x1="290" y1="211" x2="343" y2="168"/>
+        <line class="lead" x1="196" y1="203" x2="343" y2="198"/>
+        <line class="lead" x1="276" y1="221" x2="343" y2="222"/>
+        <line class="lead" x1="310" y1="232" x2="343" y2="244"/>
+        <line class="lead" x1="212" y1="219" x2="343" y2="266"/>
+        <line class="lead" x1="221" y1="262" x2="343" y2="286"/>
+        <line class="lead" x1="325" y1="272" x2="343" y2="304"/>
+      </g>
+      <g>
+        <circle class="badge" cx="350" cy="26" r="7"/><text class="badge-t" x="350" y="26">1</text>
+        <circle class="badge" cx="350" cy="60" r="7"/><text class="badge-t" x="350" y="60">2</text>
+        <circle class="badge" cx="350" cy="92" r="7"/><text class="badge-t" x="350" y="92">3</text>
+        <circle class="badge" cx="350" cy="130" r="7"/><text class="badge-t" x="350" y="130">4</text>
+        <circle class="badge" cx="350" cy="168" r="7"/><text class="badge-t" x="350" y="168">5</text>
+        <circle class="badge" cx="350" cy="198" r="7"/><text class="badge-t" x="350" y="198">6</text>
+        <circle class="badge" cx="350" cy="222" r="7"/><text class="badge-t" x="350" y="222">7</text>
+        <circle class="badge" cx="350" cy="244" r="7"/><text class="badge-t" x="350" y="244">8</text>
+        <circle class="badge" cx="350" cy="266" r="7"/><text class="badge-t" x="350" y="266">9</text>
+        <circle class="badge" cx="350" cy="286" r="7"/><text class="badge-t" x="350" y="286">10</text>
+        <circle class="badge" cx="350" cy="304" r="7"/><text class="badge-t" x="350" y="304">11</text>
+      </g>
+    </svg>
+    </div>
+    <figcaption>그림 1 · 회전축을 지나 오른쪽 옆에서 본 단면. 왼쪽이 앞(스피커 쪽). 왼쪽 숫자는 책상 면에서의 높이(mm, T = 12, L = 9일 때).</figcaption>
+    <ul class="legend">
+      <li><b>1</b>카메라 (세움판 윗모서리에 집게)</li>
+      <li><b>2</b>UMA-16, 마이크 면이 회전축 위</li>
+      <li><b>3</b>세움판 220×170, 앞면은 축에서 뒤로 11.6</li>
+      <li><b>4</b>받침대 (직각삼각형 60×100) 2개</li>
+      <li><b>5</b>회전판 200×200</li>
+      <li><b>6</b>M3×16 볼트 4개로 회전판과 플랜지 고정</li>
+      <li><b>7</b>레이지수전 (윗판은 양면테이프)</li>
+      <li><b>8</b>모터판 250×250</li>
+      <li><b>9</b>커플링 (모터 축에 무두볼트로 고정)</li>
+      <li><b>10</b>모터 (모터판 아래에 매달림)</li>
+      <li><b>11</b>옆벽 250×70 2장, 바닥판 250×250</li>
+    </ul>
+  </figure>
+  <div class="tbl"><table>
+    <thead><tr><th>부품</th><th>크기</th><th>수량</th><th>상태</th></tr></thead>
+    <tbody>
+      <tr><td>바닥판</td><td class="num">250×250</td><td class="num">1</td><td>잘라 둠</td></tr>
+      <tr><td>모터판</td><td class="num">250×250</td><td class="num">1</td><td>잘라 둠</td></tr>
+      <tr><td>회전판</td><td class="num">200×200</td><td class="num">1</td><td>잘라 둠</td></tr>
+      <tr><td>세움판</td><td class="num">220×170</td><td class="num">1</td><td>잘라 둠</td></tr>
+      <tr><td>옆벽</td><td class="num">250×70</td><td class="num">2</td><td>잘라 둠</td></tr>
+      <tr><td>받침대 (직각삼각형)</td><td class="num">밑변 60, 높이 100</td><td class="num">2</td><td>남는 조각에서 자름 (4단계)</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- 2 표시·구멍 -->
+<section class="ch" id="holes">
+  <div class="ch-no">2</div>
+  <h2>표시하고 구멍 뚫기</h2>
+  <div class="warn"><p><strong>안전</strong> 드릴을 쓸 때는 보안경을 쓰고 장갑은 끼지 않아요. 판은 항상 F클램프로 책상에 고정하고, 아래에 버리는 판을 받쳐요.</p></div>
+
+  <figure>
+    <div class="fig">
+    <svg viewBox="0 0 310 300" role="img" aria-label="모터판 평면도">
+      <rect class="wood" x="30" y="30" width="250" height="250"/>
+      <rect class="dash" x="30" y="30" width="12" height="250"/>
+      <rect class="dash" x="268" y="30" width="12" height="250"/>
+      <line class="cl" x1="20" y1="155" x2="290" y2="155"/>
+      <line class="cl" x1="155" y1="20" x2="155" y2="290"/>
+      <rect class="zone" x="79" y="79" width="152" height="152" style="fill:none"/>
+      <text class="t-s" x="81" y="88" style="fill:var(--warn)">레이지수전 자리 S×S (연필로 그림)</text>
+      <circle class="hole" cx="155" cy="155" r="12.5"/>
+      <circle class="hole" cx="139.5" cy="139.5" r="2"/>
+      <circle class="hole" cx="170.5" cy="139.5" r="2"/>
+      <circle class="hole" cx="139.5" cy="170.5" r="2"/>
+      <circle class="hole" cx="170.5" cy="170.5" r="2"/>
+      <g>
+        <circle class="hole" cx="36" cy="55" r="2"/><circle class="hole" cx="36" cy="155" r="2"/><circle class="hole" cx="36" cy="255" r="2"/>
+        <circle class="hole" cx="274" cy="55" r="2"/><circle class="hole" cx="274" cy="155" r="2"/><circle class="hole" cx="274" cy="255" r="2"/>
+      </g>
+      <polygon class="acc" points="150,30 160,30 155,38"/>
+      <text class="t-m" x="155" y="16" text-anchor="middle">앞 (스피커 쪽) · 0° 표시 ▼</text>
+      <text class="t-mono" x="176" y="137">31 간격</text>
+      <text class="t-mono" x="172" y="160">Ø25</text>
+      <text class="t-mono" x="48" y="58">Ø4 (옆벽 나사)</text>
+      <text class="t-mono" x="48" y="152">가운데에서 119</text>
+      <text class="t-mono" x="48" y="252">앞뒤 끝에서 25</text>
+      <text class="t-mono" x="182" y="290">점선 띠 = 아래에 오는 옆벽</text>
+    </svg>
+    </div>
+    <figcaption>그림 2 · 모터판 250×250 (위에서 봄). 가운데와 모터 구멍은 구멍 본을 대고 찍어요.</figcaption>
+  </figure>
+
+  <figure>
+    <div class="fig">
+    <svg viewBox="0 0 300 285" role="img" aria-label="회전판 평면도">
+      <rect class="wood" x="50" y="45" width="200" height="200"/>
+      <line class="cl" x1="40" y1="145" x2="260" y2="145"/>
+      <line class="cl" x1="150" y1="35" x2="150" y2="255"/>
+      <rect class="zone" x="74" y="69" width="152" height="152"/>
+      <text class="t-s" x="77" y="78" style="fill:var(--warn)">레이지수전 윗판 자리: 아랫면에 나사 머리 금지</text>
+      <!-- 세움판, 받침대 자리 -->
+      <rect class="dash" x="40" y="156.6" width="220" height="12" style="fill:var(--wood)"/>
+      <rect class="dash" x="54" y="168.6" width="12" height="60" style="fill:var(--wood)"/>
+      <rect class="dash" x="234" y="168.6" width="12" height="60" style="fill:var(--wood)"/>
+      <!-- 가운데, 플랜지 -->
+      <circle class="dash" cx="150" cy="145" r="12.5"/>
+      <circle class="hole" cx="150" cy="145" r="4"/>
+      <circle class="hole" cx="143.6" cy="138.6" r="2"/>
+      <circle class="hole" cx="156.4" cy="138.6" r="2"/>
+      <circle class="hole" cx="143.6" cy="151.4" r="2"/>
+      <circle class="hole" cx="156.4" cy="151.4" r="2"/>
+      <!-- 세움판 나사 -->
+      <circle class="hole" cx="66" cy="162.6" r="2"/><circle class="hole" cx="56" cy="162.6" r="2"/>
+      <circle class="hole" cx="234" cy="162.6" r="2"/><circle class="hole" cx="244" cy="162.6" r="2"/>
+      <!-- 받침대 나사 -->
+      <circle class="hole" cx="60" cy="185" r="2"/><circle class="hole" cx="60" cy="215" r="2"/>
+      <circle class="hole" cx="240" cy="185" r="2"/><circle class="hole" cx="240" cy="215" r="2"/>
+      <polygon class="acc" points="145,45 155,45 150,53"/>
+      <text class="t-m" x="150" y="30" text-anchor="middle">앞 (스피커 쪽) · 0° 표시 ▼</text>
+      <text class="t-mono" x="162" y="128">Ø8 가운데</text>
+      <text class="t-mono" x="162" y="120">플랜지 Ø4 ×4 (X자, 실물 옮김)</text>
+      <text class="t-mono" x="96" y="183">세움판 자리 (앞면 = 축 뒤 11.6)</text>
+      <text class="t-mono" x="72" y="240">받침대 자리</text>
+      <text class="t-mono" x="10" y="270">세움판 나사 x = ±84, ±94, y = 축 뒤 17.6</text>
+      <text class="t-mono" x="10" y="280">받침대 나사 x = ±90, y = 축 뒤 40, 70</text>
+    </svg>
+    </div>
+    <figcaption>그림 3 · 회전판 200×200 (위에서 봄). 세움판은 판보다 양옆으로 10씩 넓어요. 모든 나사 구멍은 Ø4로 관통해요.</figcaption>
+  </figure>
+
+  <ol class="steps">
+    <li class="step"><div class="sn">1</div><div class="sb">
+      <h3>판에 이름과 중심선 그리기</h3>
+      <ul>
+        <li>각 판에 연필로 이름, <b>윗면</b>, <b>앞 화살표</b>를 써요. 모양이 덜 고른 면을 아랫면으로 해요.</li>
+        <li>모터판·회전판·바닥판은 대각선 두 개를 그어 가운데를 찾고, 직각자로 가운데를 지나는 가로·세로 중심선을 그어요.</li>
+        <li>세움판은 가로 가운데에 세로선을 긋고, 아래 모서리에서 85 올라간 곳에 가로선을 그어요(배열 중심).</li>
+        <li>자른 모서리는 샌딩스펀지로 거스러미를 정리해요.</li>
+      </ul>
+      <label class="check"><input type="checkbox" id="c1"><span>모든 판에 이름·윗면·앞 화살표와 중심선이 있다.</span></label>
+    </div></li>
+
+    <li class="step"><div class="sn">2</div><div class="sb">
+      <h3>모터판 구멍 (그림 2)</h3>
+      <ul>
+        <li><b>구멍 본</b>(<code>문서/모터판_구멍본.pdf</code>)을 실제 크기(100%)로 인쇄하고 50 mm 선을 자로 확인해요. 모터 앞면을 본 위에 올려 나사 구멍 4개가 십자에 맞는지 먼저 봐요.</li>
+        <li>본의 점선 십자를 판 중심선에 맞춰 테이프로 붙이고, 다섯 곳(가운데·나사 4개)을 2 mm 비트로 얕게 찍은 뒤 본을 떼요.</li>
+        <li>나사 4개: 2 mm로 관통 → <b>4 mm</b>로 넓혀요. M3보다 1 mm 커서 모터를 밀어 맞출 여유가 생겨요.</li>
+        <li>가운데: 스페이드 <b>25 mm</b>. 0장 결과가 32 mm라고 하면 32 mm로 뚫어요(플랜지가 이 구멍을 지나가야 해요).</li>
+        <li>옆벽 나사 6개: 판 왼쪽·오른쪽 끝에서 6 들어간 선(가운데에서 119) 위, 앞뒤 끝에서 25와 가운데. Ø4로 관통. <b>접시 구멍은 파지 않아요.</b></li>
+        <li>판 앞 모서리 가운데에 연필로 굵게 <b>0° 표시</b>를 해요.</li>
+      </ul>
+      <div class="note"><p>스페이드 비트는 높은 속도로 천천히 눌러요. 뾰족한 끝이 뒷면으로 나오면 판을 뒤집어 그 구멍에 끝을 대고 마저 뚫어야 뒷면이 뜯어지지 않아요.</p></div>
+      <label class="check"><input type="checkbox" id="c2"><span>모터를 판 아래에 대고 M3×16 4개가 손으로 다 들어간다.</span></label>
+    </div></li>
+
+    <li class="step"><div class="sn">3</div><div class="sb">
+      <h3>회전판 구멍 (그림 3)</h3>
+      <ul>
+        <li>가운데를 먼저 <b>5 mm</b>로 관통해요.</li>
+        <li><b>플랜지 옮기기:</b> 판을 뒤집어(아랫면 위로) 플랜지를 가운데에 놓고, 5 mm 드릴 비트의 둥근 쪽을 플랜지 가운데 구멍과 판의 5 mm 구멍에 같이 꽂아요. 플랜지가 정확히 가운데에 고정돼요.</li>
+        <li>플랜지를 돌려 구멍 4개가 <b>X자</b>(판 모서리 쪽 대각선)에 오게 하고, 구멍 4개를 연필로 표시해요. X자로 두어야 뒤쪽 볼트 머리가 세움판에 닿지 않아요.</li>
+        <li>플랜지 구멍 4개는 Ø4로 관통하고, 가운데는 <b>8 mm</b>로 넓혀요(모터 축 끝이 3 mm쯤 들어오는 자리).</li>
+        <li>세움판 나사 4개: 축에서 뒤로 17.6 선 위, 가운데에서 좌우 84와 94. 받침대 나사 4개: 가운데에서 좌우 90, 축에서 뒤로 40과 70. 모두 Ø4 관통.</li>
+        <li>앞 모서리 가운데에 <b>0° 표시</b>를 해요.</li>
+      </ul>
+      <div class="note"><p>세움판·받침대 나사를 모두 레이지수전 자리(가운데에서 76 안쪽) 바깥에 둔 거예요. 그래서 회전판 아랫면에 접시 구멍을 팔 필요가 없어요. 0장 결과에서 레이지수전 판정이 “문제”로 나오면 84를 86으로 옮겨요.</p></div>
+      <label class="check"><input type="checkbox" id="c3"><span>플랜지를 아랫면에 대고 M3 볼트 4개를 위에서 꽂으면 모두 플랜지 구멍에 들어간다.</span></label>
+    </div></li>
+
+    <li class="step"><div class="sn">4</div><div class="sb">
+      <h3>바닥판·옆벽·세움판·받침대</h3>
+      <ul>
+        <li><b>바닥판:</b> 모터판과 같은 자리에 옆벽 나사 6개 Ø4. 아랫면에서 8 mm 비트를 낮은 속도로 1~2초 대어 <b>접시 구멍</b>을 파요. 나사를 박아 봐서 머리가 판과 같은 높이면 돼요. 이 6곳이 유일한 접시 구멍이에요.</li>
+        <li><b>옆벽 2장:</b> 위·아래 긴 모서리(두께 12 면) 가운데 선 위에, 끝에서 25, 125, 225 자리에 2 mm 기초 구멍(깊이 15)을 뚫어요. 나사가 들어갈 때 판이 갈라지지 않게 해요.</li>
+        <li><b>세움판:</b> 아래 모서리 가운데 선 위에, 세로 중심선에서 좌우 84와 94 자리에 2 mm 기초 구멍(깊이 15) 4개.</li>
+        <li><b>받침대 2개:</b> 남는 조각에서 직각삼각형(밑변 60, 높이 100)을 잘라요. 밑변 모서리에, 직각 꼭짓점에서 16과 46 자리에 2 mm 기초 구멍 2개씩.</li>
+      </ul>
+      <label class="check"><input type="checkbox" id="c4"><span>바닥판 나사 머리가 아랫면보다 튀어나오지 않고, 기초 구멍이 모두 모서리 가운데에 있다.</span></label>
+    </div></li>
+  </ol>
+</section>
+
+<!-- 3 목공 -->
+<section class="ch" id="wood">
+  <div class="ch-no">3</div>
+  <h2>목공 조립</h2>
+  <ol class="steps" start="5">
+    <li class="step"><div class="sn">5</div><div class="sb">
+      <div class="who">목공 담당</div>
+      <h3>상자 아래쪽 (바닥판 + 옆벽)</h3>
+      <ul>
+        <li>옆벽 두 장을 바닥판 왼쪽·오른쪽 끝에 세워 F클램프로 잡고, 바닥판 아래에서 목재 나사 3.5×32를 3개씩 박아요.</li>
+        <li>본드는 바르지 않아요. 나중에 상자를 열어 모터를 고칠 수 있게 해요.</li>
+        <li>모터판은 아직 올리지 않아요(12단계).</li>
+      </ul>
+      <label class="check"><input type="checkbox" id="c5"><span>옆벽 윗면 높이가 양쪽 모두 82(바닥판 포함)이고 흔들리지 않는다.</span></label>
+    </div></li>
+
+    <li class="step"><div class="sn">6</div><div class="sb">
+      <div class="who">목공 담당 · 하루 굳힘</div>
+      <h3>세움판과 받침대를 회전판에 붙이기</h3>
+      <ul>
+        <li>회전판 윗면에 세움판 앞면 선(축에서 뒤로 11.6)을 그어요. 세움판은 좌우 가운데를 맞춰요(양옆으로 10씩 나옴).</li>
+        <li>세움판 아래 모서리에 목공 본드를 얇게 바르고 선에 맞춰 세워요. <b>마이크가 붙을 면이 앞</b>이에요.</li>
+        <li>회전판을 조심히 옆으로 눕혀 아랫면에서 3.5×32 나사 4개를 박아요. 직각자로 세움판이 회전판과 직각인지 확인해요.</li>
+        <li>받침대 두 개는 직각 꼭짓점이 세움판 뒷면 아래에 오게 놓고(밑변은 뒤로, 높이 변은 세움판 뒷면에), 두 변에 본드를 발라 아랫면에서 나사 2개씩 박아요.</li>
+        <li>클램프로 30분 이상 잡아 두고 하루 굳혀요. 그동안 7~9단계를 해도 돼요.</li>
+      </ul>
+      <label class="check"><input type="checkbox" id="c6"><span>세움판이 회전판과 직각이고, 앞면이 축에서 뒤로 11.6 ± 1이다. 회전판 아랫면에 튀어나온 나사 머리가 레이지수전 자리 안에 없다.</span></label>
+    </div></li>
+  </ol>
+</section>
+
+<!-- 4 회전부 -->
+<section class="ch" id="rotor">
+  <div class="ch-no">4</div>
+  <h2>회전부 조립</h2>
+  <figure>
+    <div class="fig">
+    <svg viewBox="0 0 240 240" role="img" aria-label="레이지수전을 45도 돌려 아랫판 구멍을 드러내는 그림">
+      <rect class="metal" x="44" y="44" width="152" height="152" style="opacity:.55"/>
+      <polygon class="metal" points="120,12.5 227.5,120 120,227.5 12.5,120" style="opacity:.9"/>
+      <circle class="hole" cx="120" cy="120" r="28"/>
+      <circle class="hole" cx="56" cy="56" r="3"/><circle class="hole" cx="184" cy="56" r="3"/>
+      <circle class="hole" cx="56" cy="184" r="3"/><circle class="hole" cx="184" cy="184" r="3"/>
+      <line class="lead" x1="56" y1="56" x2="30" y2="30"/>
+      <text class="t-s" x="4" y="26">아랫판 모서리 구멍 → 위에서 나사</text>
+      <text class="t-s" x="128" y="236">윗판(마름모)을 45° 돌린 상태</text>
+    </svg>
+    </div>
+    <figcaption>그림 4 · 레이지수전 고정 (위에서 봄). 아랫판(사각형)은 모터판 중심선에 맞추고, 윗판만 45° 돌리면 아랫판의 네 모서리 구멍이 드러나요.</figcaption>
+  </figure>
+
+  <ol class="steps" start="7">
+    <li class="step"><div class="sn">7</div><div class="sb">
+      <div class="who">회전부 담당</div>
+      <h3>커플링을 모터 축에 고정</h3>
+      <ul>
+        <li>모터를 등이 책상에 닿게 세워 축이 위를 보게 해요.</li>
+        <li>커플링을 축에 끼우고, 고정나사(무두볼트)가 축의 <b>평평하게 깎인 면(D컷)</b>에 닿게 돌려요.</li>
+        <li>쇠자를 모터 앞면(가운데 둥근 돌출부 말고 그 바깥 평평한 면)에 세우고, 플랜지 윗면이 <b>H = <span class="mono" data-out="H">21.0</span></b>(0장 계산값)에 오게 맞춰요.</li>
+        <li>육각렌치로 고정나사를 단단히 조여요. 나사가 2개면 둘 다 조여요.</li>
+      </ul>
+      <div class="note"><p>회전판을 덮으면 이 고정나사에 렌치가 닿지 않아요. 그래서 모터를 판에 달기 전에 높이를 맞춰 고정해요. ±0.5 안이면 충분해요.</p></div>
+      <label class="check"><input type="checkbox" id="c7"><span>플랜지를 손으로 비틀어도 축에서 돌지 않고, 플랜지 윗면 높이가 H ± 0.5이다.</span></label>
+    </div></li>
+
+    <li class="step"><div class="sn">8</div><div class="sb">
+      <div class="who">회전부 담당</div>
+      <h3>모터를 모터판에 달기</h3>
+      <ul>
+        <li>모터판을 윗면이 위로 오게 두 무더기의 책 위에 걸쳐 놓아 아래에 공간을 만들어요.</li>
+        <li>모터를 아래에서 올려 커플링이 가운데 구멍을 지나 위로 나오게 하고, 모터 선 커넥터가 <b>뒤쪽</b>을 보게 돌려요.</li>
+        <li>위에서 M3×16 4개를 손으로 <b>먼저 4개 다</b> 걸어요. 그다음 축이 구멍 가운데에 오도록 모터를 살짝 밀어 맞추고, 대각선 순서로 조여요.</li>
+      </ul>
+      <label class="check"><input type="checkbox" id="c8"><span>위에서 볼 때 축이 가운데 구멍 한가운데에 있고, 모터가 판에 빈틈없이 붙어 있다.</span></label>
+    </div></li>
+
+    <li class="step"><div class="sn">9</div><div class="sb">
+      <div class="who">회전부 담당</div>
+      <h3>레이지수전 아랫판을 모터판에 고정 (그림 4)</h3>
+      <ul>
+        <li>모터판 윗면에 중심선에서 S/2(= <span class="mono" data-out="S2">76</span>)씩 떨어진 선으로 S×S 사각형을 그려요.</li>
+        <li>레이지수전을 사각형에 맞춰 올리고, <b>윗판만</b> 45° 돌려 아랫판의 모서리 구멍 4개를 드러내요.</li>
+        <li>구멍마다 2 mm로 기초 구멍(깊이 8)을 뚫고, 목재 나사 <b>3.5×10</b>을 위에서 박아요.</li>
+        <li>윗판을 손으로 한 바퀴 돌려 봐요. 나사 머리에 걸리면 그 나사를 빼고 접시머리 나사로 바꿔요.</li>
+      </ul>
+      <div class="warn"><p><strong>나사 길이</strong> 10보다 긴 나사를 쓰면 모터판(12) 아래로 뚫고 나와요.</p></div>
+      <label class="check"><input type="checkbox" id="c9"><span>레이지수전이 그린 사각형 안에 있고, 윗판이 한 바퀴 내내 걸리지 않고 돈다.</span></label>
+    </div></li>
+
+    <li class="step"><div class="sn">10</div><div class="sb">
+      <div class="who">회전부 담당 · 6단계가 굳은 뒤</div>
+      <h3>회전판 올리고 고정</h3>
+      <ul>
+        <li>0장에서 나사산이 <b>없다</b>고 나왔으면 먼저: 플랜지 아랫면 구멍마다 M3 너트를 대고, 볼트를 위에서 꽂아 너트를 잡은 채 너트 둘레에 순간접착제를 조금 발라요. 굳으면 볼트를 빼요(접착제가 나사산에 들어가지 않게).</li>
+        <li>레이지수전 윗판을 아랫판과 같은 방향(사각형끼리 나란히)으로 돌려 놓고, 윗판 네 모서리에 <b>얇은 양면테이프</b>를 2 cm씩 붙여요. 폼 테이프는 두꺼워서 쓰지 않아요.</li>
+        <li>회전판을 들어 모터 축 끝이 가운데 Ø8 구멍으로 들어가게 내려요. 회전판의 0° 표시를 모터판 0° 표시에 맞추고, 회전판 사각형이 레이지수전 사각형과 나란한지 보고 눌러 붙여요.</li>
+        <li>위에서 M3×16 볼트 4개를 플랜지 구멍에 꽂아 손으로 다 건 다음, 대각선 순서로 조여요. 너무 세게 조이지 않아요.</li>
+      </ul>
+      <label class="check"><input type="checkbox" id="c10"><span>볼트 4개가 다 조여졌고, 회전판이 레이지수전 위에 떠 있지 않고 닿아 있다.</span></label>
+    </div></li>
+
+    <li class="step"><div class="sn">11</div><div class="sb">
+      <h3>손으로 돌려 보기</h3>
+      <ul>
+        <li>모터 선은 빼 둔 상태에서 회전판을 손으로 천천히 ±90° 여러 번 돌려요. 모터의 딸깍거리는 느낌은 정상이에요.</li>
+        <li>세움판 윗모서리를 손가락으로 앞뒤·위아래로 살짝 흔들어 봐요.</li>
+      </ul>
+      <label class="check"><input type="checkbox" id="c11"><span>돌릴 때 긁히거나 걸리는 곳이 없고, 세움판 윗모서리가 1 mm 넘게 흔들리지 않는다.</span></label>
+    </div></li>
+
+    <li class="step"><div class="sn">12</div><div class="sb">
+      <h3>모터판을 상자에 올리기</h3>
+      <ul>
+        <li>회전판을 0°(앞 표시끼리 맞음)로 두면 옆벽 나사 자리가 회전판 바깥으로 드러나요.</li>
+        <li>모터판을 상자 위에 앞 방향을 맞춰 올리고, 위에서 3.5×32 나사를 3개씩 옆벽에 박아요.</li>
+        <li>모터 선은 상자 뒤로 빼요.</li>
+      </ul>
+      <label class="check"><input type="checkbox" id="c12"><span>책상 면에서 회전판 윗면까지 <span class="mono" data-out="top">115</span> 안팎이고, 상자가 흔들리지 않는다.</span></label>
+    </div></li>
+  </ol>
+</section>
+
+<!-- 5 배열·카메라 -->
+<section class="ch" id="array">
+  <div class="ch-no">5</div>
+  <h2>UMA-16과 카메라 달기</h2>
+  <figure>
+    <div class="fig">
+    <svg viewBox="0 0 280 225" role="img" aria-label="세움판 정면도">
+      <rect class="wood" x="30" y="30" width="220" height="170"/>
+      <line class="cl" x1="140" y1="20" x2="140" y2="210"/>
+      <line class="cl" x1="20" y1="115" x2="260" y2="115"/>
+      <rect class="dash" x="74" y="49" width="132" height="132"/>
+      <g class="acc">
+        <circle cx="77" cy="52" r="2.2"/><circle cx="119" cy="52" r="2.2"/><circle cx="161" cy="52" r="2.2"/><circle cx="203" cy="52" r="2.2"/>
+        <circle cx="77" cy="94" r="2.2"/><circle cx="119" cy="94" r="2.2"/><circle cx="161" cy="94" r="2.2"/><circle cx="203" cy="94" r="2.2"/>
+        <circle cx="77" cy="136" r="2.2"/><circle cx="119" cy="136" r="2.2"/><circle cx="161" cy="136" r="2.2"/><circle cx="203" cy="136" r="2.2"/>
+        <circle cx="77" cy="178" r="2.2"/><circle cx="119" cy="178" r="2.2"/><circle cx="161" cy="178" r="2.2"/><circle cx="203" cy="178" r="2.2"/>
+      </g>
+      <rect class="metal" x="132" y="181" width="16" height="7"/>
+      <text class="t-mono" x="152" y="188">USB ↓</text>
+      <rect class="metal" x="128" y="16" width="24" height="16" rx="2"/>
+      <circle class="hole" cx="140" cy="24" r="4"/>
+      <text class="t-mono" x="156" y="22">카메라 (집게)</text>
+      <text class="t-mono" x="212" y="112">배열 중심</text>
+      <text class="t-mono" x="212" y="122">아래에서 85</text>
+      <g>
+        <line class="ink" x1="56" y1="200" x2="56" y2="192"/><line class="ink" x1="46" y1="200" x2="46" y2="192"/>
+        <line class="ink" x1="224" y1="200" x2="224" y2="192"/><line class="ink" x1="234" y1="200" x2="234" y2="192"/>
+      </g>
+      <text class="t-mono" x="30" y="215">아래 모서리 기초 구멍: 가운데에서 ±84, ±94</text>
+    </svg>
+    </div>
+    <figcaption>그림 5 · 세움판 앞면(스피커 쪽에서 봄). 점선은 UMA-16 보드 자리 예상(실물을 대고 정해요), 파란 점은 마이크 16개(간격 42).</figcaption>
+  </figure>
+  <ol class="steps" start="13">
+    <li class="step"><div class="sn">13</div><div class="sb">
+      <h3>UMA-16 달기</h3>
+      <ul>
+        <li>회전판을 클램프로 단단히 잡고, 세움판 뒤에 버리는 판을 대요.</li>
+        <li>보드를 마이크 면이 앞(스피커 쪽), <b>USB 단자가 아래</b>로 가게 세움판 앞면에 대요. 채널 위치표가 이 방향 기준이에요.</li>
+        <li>가운데 마이크 4개의 한가운데를 세움판의 세로 중심선과 85 선이 만나는 점에 맞춰요.</li>
+        <li>보드의 고정 구멍 4개에 연필을 넣어 표시하고, 보드를 치운 뒤 Ø4로 관통해요.</li>
+        <li>세움판 뒤에서 M3×16으로 M3 서포트(10 mm) 4개를 고정하고, 보드를 얹어 앞에서 M3×6으로 조여요.</li>
+        <li>USB 선은 받침대 사이로 빼고 30 cm 여유를 둬요. 회전할 때 당겨지지 않게 해요.</li>
+      </ul>
+      <label class="check"><input type="checkbox" id="c13"><span>USB 단자가 아래, 마이크 격자 가운데가 축 위·회전판 윗면에서 85 높이에 있다.</span></label>
+    </div></li>
+
+    <li class="step"><div class="sn">14</div><div class="sb">
+      <h3>카메라 달기</h3>
+      <ul>
+        <li>렌즈 덮개를 빼요.</li>
+        <li>카메라 집게를 세움판 윗모서리 <b>가로 가운데</b>에 끼우고 렌즈가 정면을 보게 해요. 헐거우면 양면테이프로 보강해요.</li>
+        <li>카메라 선도 USB 허브까지 30 cm 여유를 두고, UMA-16 선과 함께 케이블타이나 테이프로 묶어요.</li>
+      </ul>
+      <label class="check"><input type="checkbox" id="c14"><span>회전판을 ±90° 돌려도 USB 선 두 개가 당겨지지 않는다.</span></label>
+    </div></li>
+  </ol>
+</section>
+
+<!-- 6 배선·시운전 -->
+<section class="ch" id="run">
+  <div class="ch-no">6</div>
+  <h2>배선과 시운전</h2>
+  <div class="warn"><p><strong>모터 선</strong>은 12 V가 꺼진 상태에서만 꽂고 빼요. 켠 채로 꽂으면 A4988이 망가져요.</p></div>
+  <ol class="steps" start="15">
+    <li class="step"><div class="sn">15</div><div class="sb">
+      <div class="who">배선 담당</div>
+      <h3>배선과 점검</h3>
+      <ul>
+        <li><code>문서/배선_작업순서.md</code>의 1·2단계(통전 검사, Vref 약 0.9 A, 모터 연결)를 해요. <b>3단계(리밋 스위치)는 건너뛰어요.</b> 4단계 앰프·스피커는 이미 끝났어요.</li>
+        <li>아두이노 IDE로 최신 <code>turntable.ino</code>를 올리고 시리얼 모니터를 닫아요.</li>
+        <li><code>python hw_check.py</code>를 실행해요. “리밋 스위치가 달려 있나요?”에는 <b>n</b>(벤치 원점 사용), 리밋 스위치 연결 질문에는 <b>s</b>(건너뛰기)로 답해요.</li>
+      </ul>
+      <label class="check"><input type="checkbox" id="c15"><span><code>hw_check.py</code>의 연결·드라이버·방향·왕복 항목이 통과했다.</span></label>
+    </div></li>
+
+    <li class="step"><div class="sn">16</div><div class="sb">
+      <h3>0° 맞추기 (켤 때마다)</h3>
+      <ul>
+        <li><code>python step1_turntable.py</code>로 연결해요.</li>
+        <li><code>e0</code>(드라이버 끄기) → 회전판을 손으로 돌려 <b>회전판 0° 표시를 모터판 0° 표시에 맞춤</b> → <code>e1</code> → <code>o</code>. 이제 지금 위치가 0°예요.</li>
+        <li>정밀하게 맞추려면 스피커 A를 정면 1.5 m에 두고 <code>python step4_beamform.py --true 0</code>을 실행해요. 추정 각도가 0°가 아니면 <code>m</code>으로 그 반대만큼 돌린 뒤(예: +3°가 나오면 <code>m-3</code>) 다시 <code>o</code>를 보내요.</li>
+      </ul>
+      <div class="note"><p>각도 약속: 위에서 볼 때 <b>반시계 방향이 +</b>예요. 회전판이 +30° 돌면 앞에 있는 스피커는 배열 뒤에서 볼 때 오른쪽으로 가므로, 빔포밍(<code>step4</code>)도 +30° 근처를 보여야 해요.</p></div>
+      <label class="check"><input type="checkbox" id="c16"><span>0° 표시가 맞고, 정면 스피커의 추정 각도가 0 ± 2°이다.</span></label>
+    </div></li>
+
+    <li class="step"><div class="sn">17</div><div class="sb">
+      <h3>방향 확인과 반복 정확도</h3>
+      <ul>
+        <li><code>m10</code>을 보내 위에서 볼 때 <b>반시계</b>로 도는지 봐요. 시계 방향이면 스케치의 <code>DIR_INVERT</code>를 바꿔 다시 올려요.</li>
+        <li><code>g30</code> 후 <code>step4_beamform.py --true 0</code>을 실행해 약 +30°가 나오는지, <code>g-30</code>에서 약 −30°가 나오는지 봐요(스피커는 정면에 그대로).</li>
+        <li><b>반복 시험:</b> 세움판 윗면에 대나무 꼬치를 앞으로 길게 붙이고, 끝 아래(축에서 300)에 종이를 붙여요. <code>g0</code>에서 끝 위치를 표시하고, <code>g60</code> → <code>g0</code>, <code>g-60</code> → <code>g0</code>을 10번 반복하며 매번 표시해요.</li>
+      </ul>
+      <label class="check"><input type="checkbox" id="c17"><span>±30°에서 빔포밍 부호가 맞고, 반복 표시점이 모두 2 mm 폭 안에 있다(300에서 2 mm ≈ 0.4°).</span></label>
+    </div></li>
+  </ol>
+</section>
+
+<!-- 7 스피커 통 -->
+<section class="ch" id="speaker">
+  <div class="ch-no">7</div>
+  <h2>스피커 통 2개 (따로 진행 가능)</h2>
+  <p class="lead">회전판과 상관없이 아무 때나 만들 수 있어요. 밀폐 상자에 넣으면 1~2 kHz에서도 소리가 잘 나와요.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>판 (1통 기준, 2통 만듦)</th><th>크기</th><th>수량</th></tr></thead>
+    <tbody>
+      <tr><td>앞판·뒤판</td><td class="num">80×80</td><td class="num">2</td></tr>
+      <tr><td>위판·아래판</td><td class="num">80×76</td><td class="num">2</td></tr>
+      <tr><td>옆판</td><td class="num">56×76</td><td class="num">2</td></tr>
+    </tbody>
+  </table></div>
+  <ol class="steps">
+    <li class="step"><div class="sn">S1</div><div class="sb"><h3>자르고 앞판 구멍</h3><p>앞판 가운데에 스페이드 32 mm. 스피커 테 구멍 4개는 실물을 대고 표시해 Ø4. 뒤판에 선 구멍 Ø5. 자석이 31 mm보다 크면 45 mm 홀쏘가 필요해요.</p></div></li>
+    <li class="step"><div class="sn">S2</div><div class="sb"><h3>스피커 달기</h3><p>스피커를 앞판 <b>바깥쪽</b>에 대고 자석만 구멍으로 넣어 M3×20 + 너트로 고정해요. 선은 뒤판 구멍으로 빼고, A·B 모두 + 단자에 같은 색 선이 가게 해요.</p></div></li>
+    <li class="step"><div class="sn">S3</div><div class="sb"><h3>상자 붙이기</h3><p>아래·옆·위·앞판을 본드와 3.5×32 나사로 붙이고 이음매 안쪽에 본드를 한 번 더 발라요. 뒤판은 나사로만 닫아 열 수 있게 해요. 선 구멍 틈은 본드로 막아요.</p></div></li>
+    <li class="step"><div class="sn">S4</div><div class="sb"><h3>이름 쓰기</h3><p>상자에 “A”, “B”를 크게 써요. <code>00_채널확인.wav</code>를 틀었을 때 A에서 낮은 소리가 먼저 나오면 맞아요.</p></div></li>
+  </ol>
+</section>
+
+<!-- 준비물 -->
+<section class="ch" id="buy">
+  <h2>준비물</h2>
+  <div class="tbl"><table>
+    <thead><tr><th>새로 사거나 챙길 것</th><th>수량</th><th>쓰는 곳</th></tr></thead>
+    <tbody>
+      <tr><td>목재 나사 3.5×10 (둥근머리, 접시머리 몇 개 섞어서)</td><td class="num">8</td><td>레이지수전 아랫판 4 + 여분</td></tr>
+      <tr><td>M3×16 볼트</td><td class="num">2 이상</td><td>모터 4·플랜지 4·UMA-16 4 = 12개, 산 것 10개</td></tr>
+      <tr><td>얇은 양면테이프 (문구용)</td><td class="num">1</td><td>레이지수전 윗판</td></tr>
+      <tr><td>M3 너트 + 순간접착제</td><td class="num">4</td><td>플랜지에 나사산이 없을 때만</td></tr>
+      <tr><td>연필, 마스킹테이프, 대나무 꼬치, 종이</td><td class="num">-</td><td>표시, 반복 시험</td></tr>
+    </tbody>
+  </table></div>
+  <div class="tbl"><table>
+    <thead><tr><th>이제 필요 없는 것</th><th>이유</th></tr></thead>
+    <tbody>
+      <tr><td>M2 볼트·너트, 리밋 스위치 납땜</td><td>리밋 스위치를 달지 않음</td></tr>
+      <tr><td>M4×20 볼트·너트 (레이지수전용)</td><td>목재 나사와 양면테이프로 바꿈</td></tr>
+      <tr><td>스페이드 32 mm로 카메라 구멍</td><td>카메라를 집게로 끼움 (스피커 통 앞판에는 그대로 씀)</td></tr>
+    </tbody>
+  </table></div>
+  <p class="lead">공구: 드릴, HSS 비트 2·4·5·8 mm, 스페이드 25 mm(필요하면 32 mm), 쇠자, 직각자, F클램프, 육각렌치, 십자 드라이버, 목공 본드, 샌딩스펀지, 보안경.</p>
+  <div class="btns">
+    <button type="button" class="ghost" id="reset">체크 모두 지우기</button>
+  </div>
+</section>
+</div>
+
+<script>
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const store = {
+    get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+    set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} },
+    del(k) { try { localStorage.removeItem(k); } catch (e) {} },
+  };
+
+  // 실측 계산
+  const ids = ["in-T", "in-L", "in-S", "in-F", "in-C", "in-th"];
+  ids.forEach((id) => { const v = store.get("ttg-" + id); if (v !== null) $(id).value = v; });
+  const num = (id) => parseFloat($(id).value);
+  let lastText = "";
+
+  function calc() {
+    const T = num("in-T"), L = num("in-L"), S = num("in-S"), F = num("in-F"), C = num("in-C");
+    const th = $("in-th").value;
+    const rows = [];
+    const H = T + L;
+    rows.push(["커플링 높이 H (모터 앞면 → 플랜지 윗면)", isFinite(H) ? H.toFixed(1) : "-", ""]);
+    const center = F >= 24 ? "스페이드 32 mm" : "스페이드 25 mm";
+    rows.push(["모터판 가운데 구멍", isFinite(F) ? center : "-", F >= 24 ? "bad" : ""]);
+    const okC = C >= F + 4;
+    rows.push(["레이지수전 가운데 구멍과 플랜지", isFinite(C) && isFinite(F) ? (okC ? "통과" : "플랜지가 너무 큼") : "-", okC ? "good" : "bad"]);
+    const edge = S / 2 + 3.5;
+    const okS = edge < 84;
+    rows.push(["세움판 나사(±84)와 레이지수전 자리", isFinite(S) ? (okS ? "통과 (" + edge.toFixed(1) + " < 84)" : "84를 " + Math.ceil(edge + 1) + "로 옮김") : "-", okS ? "good" : "bad"]);
+    const top = 12 + 70 + T + L + 12;
+    rows.push(["책상 → 회전판 윗면", isFinite(top) ? top.toFixed(1) : "-", ""]);
+    rows.push(["책상 → 배열 중심", isFinite(top) ? (top + 85).toFixed(1) : "-", ""]);
+    const thText = { yes: "위에서 M3×16 볼트", no: "플랜지 아래에 M3 너트를 붙인 뒤 볼트 (10단계)", unk: "M3 볼트를 플랜지에 돌려 보세요" }[th];
+    rows.push(["플랜지 고정", thText, th === "unk" ? "bad" : ""]);
+
+    $("results").innerHTML = rows.map(([a, b, cls]) =>
+      `<li><span>${a}</span><span class="${cls}">${b}</span></li>`).join("");
+    document.querySelectorAll('[data-out="H"]').forEach((e) => e.textContent = isFinite(H) ? H.toFixed(1) : "?");
+    document.querySelectorAll('[data-out="S2"]').forEach((e) => e.textContent = isFinite(S) ? (S / 2).toFixed(1) : "?");
+    document.querySelectorAll('[data-out="top"]').forEach((e) => e.textContent = isFinite(top) ? top.toFixed(0) : "?");
+    lastText = "회전판 실측 (단순판)\n" +
+      `T ${T}, L ${L}, S ${S}, 플랜지 지름 ${F}, 레이지수전 가운데 구멍 ${C}, 나사산 ${$("in-th").selectedOptions[0].text}\n` +
+      rows.map(([a, b]) => `- ${a}: ${b}`).join("\n");
+  }
+  ids.forEach((id) => $(id).addEventListener("input", () => { store.set("ttg-" + id, $(id).value); calc(); }));
+  calc();
+
+  $("copy").addEventListener("click", () => {
+    const done = () => { $("copied").hidden = false; setTimeout(() => $("copied").hidden = true, 3000); };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(lastText).then(done).catch(() => fallback());
+    } else fallback();
+    function fallback() {
+      const ta = document.createElement("textarea");
+      ta.value = lastText; document.body.appendChild(ta); ta.select();
+      try { document.execCommand("copy"); done(); } catch (e) {}
+      ta.remove();
+    }
+  });
+
+  // 단계 체크
+  const boxes = Array.from(document.querySelectorAll("label.check input"));
+  function progress() {
+    const n = boxes.filter((b) => b.checked).length;
+    $("progress").textContent = `확인 ${n} / ${boxes.length}`;
+  }
+  boxes.forEach((b) => {
+    b.checked = store.get("ttg-" + b.id) === "1";
+    b.addEventListener("change", () => { store.set("ttg-" + b.id, b.checked ? "1" : "0"); progress(); });
+  });
+  $("reset").addEventListener("click", () => {
+    boxes.forEach((b) => { b.checked = false; store.del("ttg-" + b.id); });
+    progress();
+  });
+  progress();
+})();
+</script>

@@ -17,7 +17,8 @@ import numpy as np
 # 설계_및_결정사항.md "UMA-16 채널 위치표" (2026-11-11)
 MIC_XY_MM = [(-21, -63), (-63, -63), (-21, -21), (-63, -21), (-21, +21), (-63, +21), (-21, +63), (-63, +63),
              (+63, +63), (+21, +63), (+63, +21), (+21, +21), (+63, -21), (+21, -21), (+63, -63), (+21, -63)]
-MIC_X = np.array(MIC_XY_MM, dtype=float)[:, 0] / 1000  # m
+MIC_XY = np.array(MIC_XY_MM, dtype=float) / 1000  # m
+MIC_X = MIC_XY[:, 0]
 
 
 def sound_speed(temp_c):
@@ -28,6 +29,14 @@ def arrival_delays(angles_deg, temp_c=20.0):
     """평면파가 배열 중심보다 각 마이크에 늦게 닿는 시간 (s). 모양 (각도 수, 16)."""
     s = np.sin(np.radians(np.atleast_1d(angles_deg)))
     return s[:, None] * MIC_X[None, :] / sound_speed(temp_c)
+
+
+def arrival_delays_2d(az_deg, el_deg, temp_c=20.0):
+    """가로 az(뒤에서 볼 때 오른쪽 +)·세로 el(위쪽 +) 방향마다 늦게 닿는 시간 (s). 모양 (방향 수, 16).
+    위에서 온 소리는 y > 0인 마이크에 먼저 닿는다. el = 0이면 arrival_delays와 같다."""
+    az, el = np.radians(np.ravel(az_deg)), np.radians(np.ravel(el_deg))
+    return ((np.sin(az) * np.cos(el))[:, None] * MIC_XY[None, :, 0]
+            - np.sin(el)[:, None] * MIC_XY[None, :, 1]) / sound_speed(temp_c)
 
 
 def stft(x, nfft=1024):
