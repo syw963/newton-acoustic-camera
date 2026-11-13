@@ -1,0 +1,6 @@
+numpy
+matplotlib
+soundfile
+sounddevice
+pyserial
+torch
